@@ -1,0 +1,16 @@
+[package]
+name = "vjpyree-gpn21"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy_pyree = { path="../bevy_pyree" }
+bevy_rosc = "0.6.0"
+bevy-inspector-egui = "0.18.3"
+rosc = "0.9.1"
+bevy = { version = "0.10", default-features = true }
+bevy_egui = "0.20.3"
+
+# Significantly improve performance while developing
+[profile.dev.package."*"]
+opt-level = 3
