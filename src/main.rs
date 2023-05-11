@@ -3,6 +3,7 @@
 mod feedback_shader;
 mod mandelbrot;
 mod motto;
+mod chipspin;
 
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
@@ -20,6 +21,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::window::WindowResolution;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pyree::beat::{BeatEvent, OscBeatReceiverPlugin};
+use crate::chipspin::ChipSpin;
 use crate::feedback_shader::FeedbackShaderPlugin;
 use crate::mandelbrot::MandelbrotPlugin;
 use crate::motto::Motto;
@@ -51,9 +53,10 @@ fn main() {
         .add_plugin(BevyRoscPlugin::new("0.0.0.0:31337").unwrap())
         .add_plugin(OscBeatReceiverPlugin::default())
 
+        .add_plugin(ChipSpin)
         //.add_plugin(FeedbackShaderPlugin)
-        //.add_plugin(MandelbrotPlugin)
-        .add_plugin(Motto)
+        .add_plugin(MandelbrotPlugin)
+        //.add_plugin(Motto)
     ;
 
     app.run();

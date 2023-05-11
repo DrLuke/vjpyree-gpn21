@@ -5,6 +5,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
+use crate::chipspin::ChipSpinTexture;
 
 
 pub struct MandelbrotPlugin;
@@ -82,14 +83,16 @@ pub fn spawn_feedback_shader(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<MandelBrotMaterial>>,
     mut std_materials: ResMut<Assets<StandardMaterial>>,
-    assets: Res<AssetServer>
+    assets: Res<AssetServer>,
+    chip_spin_texture: Res<ChipSpinTexture>,
 ) {
     let rt_res = MandelBrotRenderTarget::new(&mut images);
 
     let material_handle = materials.add(MandelBrotMaterial {
         previous_rt: rt_res.render_target.clone(),
-        image_trap: assets.load("poltergeist.png"),
-        some_val: 1f32
+        //image_trap: assets.load("images/trip2.png"),
+        image_trap: chip_spin_texture.texture.clone(),
+        some_val: 0.2f32
     });
 
     spawn_fs_quad::<MandelBrotMaterial>(
@@ -101,13 +104,13 @@ pub fn spawn_feedback_shader(
         0,
     );
 
-    /*spawn_render_image_to_screen(
+    spawn_render_image_to_screen(
         &mut commands,
         &mut meshes,
         &mut std_materials,
         rt_res.render_target.clone(),
         RenderLayers::layer(31),
-    );*/
+    );
 
     commands.insert_resource(rt_res);
 }

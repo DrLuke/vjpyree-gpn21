@@ -9,6 +9,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::sprite::Anchor;
 use crate::{RenderLayers, ShaderRef};
 use crate::AlphaMode::Blend;
+use crate::chipspin::ChipSpinTexture;
 use crate::shape::Quad;
 
 
@@ -61,185 +62,9 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut chip_card_materials: ResMut<Assets<ChipCardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
     assets: Res<AssetServer>,
+    chip_spin_texture: Res<ChipSpinTexture>,
 ) {
-    // Text on the chip must first be rendered to a texture before it can be rendered in 3d space
-    let size = Extent3d { width: 1024, height: 1024, ..default() };
-    let mut dip_text_image = Image {
-        texture_descriptor: TextureDescriptor {
-            label: None,
-            size,
-            dimension: TextureDimension::D2,
-            format: TextureFormat::Rgba32Float,
-            mip_level_count: 1,
-            sample_count: 1,
-            usage: TextureUsages::TEXTURE_BINDING
-                | TextureUsages::COPY_DST
-                | TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[]
-        },
-        sampler_descriptor: ImageSampler::Descriptor(SamplerDescriptor {
-            address_mode_u: AddressMode::Repeat,
-            address_mode_v: AddressMode::Repeat,
-            ..Default::default()
-        }),
-        ..default()
-    };
-    dip_text_image.resize(size);
-
-    let dip_text_image_handle = images.add(dip_text_image);
-    commands.spawn(Camera2dBundle{
-        camera: Camera {
-            target: RenderTarget::Image(dip_text_image_handle.clone()),
-            ..default()
-        },
-        camera_2d: Camera2d {
-            clear_color: ClearColorConfig::Custom(Color::rgba(0., 0., 0., 0.)),
-            ..default()
-        },
-        ..default()
-    }).insert(RenderLayers::layer(8));
-
-    let font = assets.load("fonts/Roboto-Bold.ttf");
-    let text_style1 = TextStyle {
-        font: font.clone(),
-        font_size: 190.0,
-        color: Color::WHITE,
-    };
-
-    commands.spawn(Text2dBundle {
-        text_anchor: Anchor::TopLeft,
-        text: Text::from_section("GPN 42/2", text_style1).with_alignment(TextAlignment::Left),
-        transform: Transform::from_scale(Vec3::splat(1.))
-            .with_translation(Vec3::new(-480.,500., 0.)),
-        ..default()
-    }).insert(RenderLayers::layer(8));
-
-    let text_style2 = TextStyle {
-        font: font.clone(),
-        font_size: 100.0,
-        color: Color::WHITE,
-    };
-    commands.spawn(Text2dBundle {
-        text_anchor: Anchor::BottomRight,
-        text: Text::from_section("23-23", text_style2).with_alignment(TextAlignment::Right),
-        transform: Transform::from_scale(Vec3::splat(1.))
-            .with_translation(Vec3::new(315.,-50., 0.)),
-        ..default()
-    }).insert(RenderLayers::layer(8));
-
-
-    // 3D scene for rendering chip to texture
-    let size = Extent3d { width: 1024, height: 1024, ..default() };
-    let mut dip_render_target_image = Image {
-        texture_descriptor: TextureDescriptor {
-            label: None,
-            size,
-            dimension: TextureDimension::D2,
-            format: TextureFormat::Rgba32Float,
-            mip_level_count: 1,
-            sample_count: 1,
-            usage: TextureUsages::TEXTURE_BINDING
-                | TextureUsages::COPY_DST
-                | TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[]
-        },
-        sampler_descriptor: ImageSampler::Descriptor(SamplerDescriptor {
-            address_mode_u: AddressMode::Repeat,
-            address_mode_v: AddressMode::Repeat,
-            ..Default::default()
-        }),
-        ..default()
-    };
-    dip_render_target_image.resize(size);
-
-    let dip_render_target_handle = images.add(dip_render_target_image);
-
-    commands.spawn(Camera3dBundle {
-        projection: OrthographicProjection {
-            scaling_mode: ScalingMode::WindowSize(1.),
-            near: 2000.,
-            far: -2000.,
-            ..default()
-        }
-        .into(),
-        transform: Transform::from_xyz(0.0, 500.0, 500.0).looking_at(Vec3::ZERO, Vec3::Y),
-        camera: Camera {
-            order: -1000,
-            target: RenderTarget::Image(dip_render_target_handle.clone()),
-            ..default()
-        },
-        camera_3d: Camera3d {
-            clear_color: ClearColorConfig::Custom(Color::rgba(0., 0., 0., 0.)),
-            ..default()
-        },
-        tonemapping: Tonemapping::None,
-        ..default()
-    })
-        .insert(RenderLayers::layer(10))
-    ;
-
-    let my_gltf = assets.load("models/gpn21-dip.glb#Scene0");
-    commands.spawn(SceneBundle {
-        scene: my_gltf,
-        transform: Transform::from_xyz(0., 0., 0.)
-            .with_scale(Vec3::splat(100.))
-            .with_rotation(Quat::from_rotation_x(-PI/2.)),
-        ..Default::default()
-    })
-        .insert(RenderLayers::layer(10))
-        .insert(DipModel)
-        .with_children(|child_builder| {
-            child_builder
-                .spawn(MaterialMeshBundle{
-                    mesh: meshes.add(Quad::new(Vec2::splat(1.)).into()),
-                    material: materials.add(StandardMaterial {
-                        base_color_texture: Some(dip_text_image_handle.clone()),
-                        alpha_mode: AlphaMode::Blend,
-                        ..default()
-                    }),
-                    transform: Transform::from_scale(Vec3::splat(4.))
-                        .with_translation(Vec3::new(-0.85, 1.67, -0.5))
-                        .with_rotation(Quat::from_rotation_x(PI/2.)*Quat::from_rotation_z(-PI/2.)),
-                    ..default()
-                }).insert(RenderLayers::layer(10));
-        })
-    ;
-
-    // Lights
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            shadows_enabled: false,
-            illuminance: 7000.,
-            color: Color::rgb(0.6, 0.6, 1.0),
-            ..default()
-        },
-        transform: Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(f32::to_radians(-10.)) *
-                Quat::from_rotation_z(f32::to_radians(20.)),
-            ..default()
-        },
-        ..default()
-    }).insert(RenderLayers::layer(10));
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            shadows_enabled: false,
-            illuminance: 4000.,
-            color: Color::ORANGE_RED,
-            ..default()
-        },
-        transform: Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(f32::to_radians(-80.)) *
-                Quat::from_rotation_z(f32::to_radians(-40.)),
-            ..default()
-        },
-        ..default()
-    }).insert(RenderLayers::layer(10));
-
-
     // 2D realm ---------
 
     // camera
@@ -280,7 +105,7 @@ fn setup(
     commands.spawn(MaterialMeshBundle {
         mesh: meshes.add(shape::Quad::new(Vec2::splat(1.)).into()),
         material: chip_card_materials.add(ChipCardMaterial{
-            chip: dip_render_target_handle.clone(),
+            chip: chip_spin_texture.texture.clone(),
             glitch_offset: 0.,
             glitch_pixelation: 0.,
             glitch_abberration: 0.,
@@ -294,7 +119,7 @@ fn setup(
     commands.spawn(MaterialMeshBundle {
         mesh: meshes.add(shape::Quad::new(Vec2::splat(1.)).into()),
         material: chip_card_materials.add(ChipCardMaterial{
-            chip: dip_render_target_handle.clone(),
+            chip: chip_spin_texture.texture.clone(),
             glitch_offset: 0.5,
             glitch_pixelation: 0.,
             glitch_abberration: 0.,
@@ -308,7 +133,7 @@ fn setup(
     commands.spawn(MaterialMeshBundle {
         mesh: meshes.add(shape::Quad::new(Vec2::splat(1.)).into()),
         material: chip_card_materials.add(ChipCardMaterial{
-            chip: dip_render_target_handle.clone(),
+            chip: chip_spin_texture.texture.clone(),
             glitch_offset: 1.,
             glitch_pixelation: 0.,
             glitch_abberration: 0.,
