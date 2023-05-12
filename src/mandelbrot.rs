@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, ShaderType, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::reflect::TypeUuid;
 use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
@@ -58,6 +58,12 @@ impl MandelBrotRenderTarget {
     }
 }
 
+#[derive(Clone, Reflect, FromReflect, ShaderType)]
+pub struct JuliaC {
+    pub re: f32,
+    pub im: f32,
+}
+
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
 #[uuid = "8f890807-2d1a-4312-86fc-07660a06e39c"]
 pub struct MandelBrotMaterial {
@@ -68,7 +74,7 @@ pub struct MandelBrotMaterial {
     #[sampler(3)]
     pub image_trap: Handle<Image>,
     #[uniform(4)]
-    pub some_val: f32
+    pub julia_c: JuliaC,
 }
 
 impl Material for MandelBrotMaterial {
@@ -92,7 +98,7 @@ pub fn spawn_feedback_shader(
         previous_rt: rt_res.render_target.clone(),
         //image_trap: assets.load("images/trip2.png"),
         image_trap: chip_spin_texture.texture.clone(),
-        some_val: 0.2f32
+        julia_c: JuliaC {re: 0.2, im: 0.55},
     });
 
     spawn_fs_quad::<MandelBrotMaterial>(

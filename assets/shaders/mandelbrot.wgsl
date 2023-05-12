@@ -8,12 +8,12 @@ struct VertexOutput {
     @location(2) uv: vec2<f32>,
 };
 
-struct MyUniforms{
-    some_val: f32
+struct JuliaC{
+    re: f32,
+    im: f32,
 }
 
-@group(1) @binding(4)
-var<uniform> my_uniforms: MyUniforms;
+
 @group(1) @binding(0)
 var texture_a: texture_2d<f32>;
 @group(1) @binding(1)
@@ -22,6 +22,8 @@ var our_sampler_a: sampler;
 var texture_b: texture_2d<f32>;
 @group(1) @binding(3)
 var our_sampler_b: sampler;
+@group(1) @binding(4)
+var<uniform> julia_c: JuliaC;
 
 struct Complex {
     re: f32,
@@ -51,23 +53,17 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let scale = 1./1.;
 
     var Z = Complex(uvca.x*scale + origin.re, uvca.y*scale + origin.im);
-    var C = Complex(my_uniforms.some_val + sin(globals.time)*0.05, 0.5);
+    var C = Complex(julia_c.re, julia_c.im);
 
-    var trap1: f32 = 999.;
-    var trap2: f32 = 999.;
+    var output_color = vec4<f32>(0., 0., 0., 0.0);
 
-    var output_color = vec4<f32>(0., 0., 0., 1.0);
-
-    for(var i: i32 = 0; i < 100; i++) {
+    for(var i: i32 = 0; i < 10; i++) {
         Z = mandelbrot(Z, C);
 
         let t = trap(Z);
-        if(t.w > 0.5) {
-            output_color = vec4<f32>(t.r, t.r, t.r, 1.)/(f32(i)/10.);
+        if(t.w > 0.01) {
+            output_color = vec4<f32>(t.r, t.g, t.b, 1.) / (f32(i)/0.5 + 1.);
             break;
-        } else {
-            //output_color.r = length(vec2<f32>(Z.re, Z.im));
-            //output_color.g = length(f32(i));
         }
     }
 
