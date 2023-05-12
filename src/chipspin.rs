@@ -321,7 +321,7 @@ fn chip_spin_ui(
 ) {
     let mut transform = query.single_mut();
 
-    egui::Window::new("Hello").show(contexts.ctx_mut(), |ui| {
+    egui::Window::new("Chip Spin").show(contexts.ctx_mut(), |ui| {
         egui::Grid::new("my_grid")
                 .num_columns(2)
                 .spacing([40.0, 4.0])
