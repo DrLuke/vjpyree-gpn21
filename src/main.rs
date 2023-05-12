@@ -39,7 +39,7 @@ fn main() {
                 primary_window: Some(Window {
                     title: "VJ Pyree".into(),
                     resolution: WindowResolution::new(1920., 1080.)
-                        .with_scale_factor_override(1.),
+                        .with_scale_factor_override(1.75),
                     ..default()
                 }),
                 ..default()

@@ -7,8 +7,10 @@ use bevy::reflect::TypeUuid;
 use bevy::render::render_resource::{AddressMode, Extent3d, AsBindGroup, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::render::texture::{DEFAULT_IMAGE_HANDLE, ImageSampler};
 use bevy::sprite::Anchor;
+use bevy_egui::{egui, EguiContexts};
 use crate::{RenderLayers, ShaderRef};
 use crate::AlphaMode::Blend;
+use crate::chipspin::ChipSpinState::Fixed;
 use crate::shape::Quad;
 
 
@@ -19,8 +21,14 @@ impl Plugin for ChipSpin {
         app
             .add_startup_system(setup)
             .add_system(gltf_render_layer_system)
+
+            .add_system(chip_spin_ui.before(spin_dip_system))
             .add_system(spin_dip_system)
+
             .init_resource::<ChipSpinTexture>()
+            .init_resource::<ChipSpinStateResource>()
+
+
         ;
     }
 }
@@ -253,11 +261,106 @@ fn recursive_render_layer_insert(
     Ok(())
 }
 
+// Chip spin system
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum ChipSpinState {
+    Default, // Default position
+    Fixed, // Set fixed rotation
+    Rate, // Rotate with rate
+}
+
+#[derive(Resource)]
+struct ChipSpinStateResource {
+    pub state: ChipSpinState,
+    pub fixed: (f32, f32, f32),
+    pub rate: (f32, f32, f32),
+}
+
+impl FromWorld for ChipSpinState {
+    fn from_world(world: &mut World) -> Self { Self::Rate }
+}
+
+impl FromWorld for ChipSpinStateResource {
+    fn from_world(world: &mut World) -> Self {
+        Self {
+            state: ChipSpinState::Rate,
+            fixed: (0., 0., 0.),
+            rate: (1., 0., 0.),
+        }
+    }
+}
+
 fn spin_dip_system(
     mut query: Query<&mut Transform, With<DipModel>>,
     time: Res<Time>,
+    csr: Res<ChipSpinStateResource>,
 ) {
-    for mut transform in query.iter_mut() {
-        transform.rotate_z(time.delta_seconds())
+    let mut transform = query.single_mut();
+
+    match csr.state {
+        ChipSpinState::Default => {
+            *transform = transform.with_rotation(Quat::from_rotation_x(-PI/2.)*Quat::from_rotation_z(-PI/2.));
+        },
+        ChipSpinState::Fixed => {
+            *transform = transform.with_rotation(
+                Quat::from_rotation_x(csr.fixed.0) *
+                    Quat::from_rotation_y(csr.fixed.1) *
+                    Quat::from_rotation_z(csr.fixed.2)
+            );
+        },
+        ChipSpinState::Rate => {
+            transform.rotate(
+                Quat::from_rotation_x(csr.rate.0 * time.delta_seconds()) *
+                    Quat::from_rotation_y(csr.rate.1 * time.delta_seconds()) *
+                    Quat::from_rotation_z(csr.rate.2 * time.delta_seconds())
+            );
+        },
     }
+}
+
+fn chip_spin_ui(
+    mut contexts: EguiContexts,
+    mut csr: ResMut<ChipSpinStateResource>,
+    mut query: Query<&mut Transform, With<DipModel>>,
+) {
+    let mut transform = query.single_mut();
+
+    egui::Window::new("Hello").show(contexts.ctx_mut(), |ui| {
+        egui::Grid::new("my_grid")
+                .num_columns(2)
+                .spacing([40.0, 4.0])
+                .striped(true)
+                .show(ui, |ui| {
+                    ui.label("Rot Mode");
+                    ui.horizontal(|ui| {
+                        ui.selectable_value(&mut csr.state, ChipSpinState::Default, "Default");
+                        ui.selectable_value(&mut csr.state, ChipSpinState::Fixed, "Fixed");
+                        ui.selectable_value(&mut csr.state, ChipSpinState::Rate, "Rate");
+                        //ui.selectable_value(radio, Enum::Third, "Third");
+                    });
+                    ui.end_row();
+
+                    ui.label("Fixed");
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut csr.fixed.0).speed(0.01).max_decimals(2));
+                        ui.add(egui::DragValue::new(&mut csr.fixed.1).speed(0.01).max_decimals(2));
+                        ui.add(egui::DragValue::new(&mut csr.fixed.2).speed(0.01).max_decimals(2));
+                    });
+                    ui.end_row();
+
+                    ui.label("Rate");
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut csr.rate.0).speed(0.01).max_decimals(2));
+                        ui.add(egui::DragValue::new(&mut csr.rate.1).speed(0.01).max_decimals(2));
+                        ui.add(egui::DragValue::new(&mut csr.rate.2).speed(0.01).max_decimals(2));
+                    });
+                    ui.end_row();
+
+                    ui.label("Fixed from current");
+                    if ui.button("Set").clicked() {
+                        csr.fixed = transform.rotation.to_euler(EulerRot::XYZ);
+                        csr.state = Fixed;
+                    }
+                });
+    });
 }
