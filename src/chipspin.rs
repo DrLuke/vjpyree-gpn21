@@ -285,7 +285,7 @@ impl FromWorld for ChipSpinStateResource {
         Self {
             state: ChipSpinState::Rate,
             fixed: (0., 0., 0.),
-            rate: (1., 0., 0.),
+            rate: (0.25, 0., 0.),
         }
     }
 }
@@ -302,11 +302,7 @@ fn spin_dip_system(
             *transform = transform.with_rotation(Quat::from_rotation_x(-PI/2.)*Quat::from_rotation_z(-PI/2.));
         },
         ChipSpinState::Fixed => {
-            *transform = transform.with_rotation(
-                Quat::from_rotation_x(csr.fixed.0) *
-                    Quat::from_rotation_y(csr.fixed.1) *
-                    Quat::from_rotation_z(csr.fixed.2)
-            );
+            *transform = transform.with_rotation(Quat::from_euler(EulerRot::XYZ, csr.fixed.0, csr.fixed.1, csr.fixed.2));
         },
         ChipSpinState::Rate => {
             transform.rotate(
@@ -336,7 +332,6 @@ fn chip_spin_ui(
                         ui.selectable_value(&mut csr.state, ChipSpinState::Default, "Default");
                         ui.selectable_value(&mut csr.state, ChipSpinState::Fixed, "Fixed");
                         ui.selectable_value(&mut csr.state, ChipSpinState::Rate, "Rate");
-                        //ui.selectable_value(radio, Enum::Third, "Third");
                     });
                     ui.end_row();
 
