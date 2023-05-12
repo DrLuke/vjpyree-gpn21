@@ -8,25 +8,25 @@ use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
 use crate::chipspin::ChipSpinTexture;
 
 
-pub struct MandelbrotPlugin;
+pub struct FractalPlugin;
 
-impl Plugin for MandelbrotPlugin {
+impl Plugin for FractalPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_startup_system(spawn_feedback_shader)
-            .add_plugin(MaterialPlugin::<MandelBrotMaterial>::default())
-            .add_asset::<MandelBrotMaterial>()
-            .register_asset_reflect::<MandelBrotMaterial>()
+            .add_plugin(MaterialPlugin::<FractalMaterial>::default())
+            .add_asset::<FractalMaterial>()
+            .register_asset_reflect::<FractalMaterial>()
         ;
     }
 }
 
 #[derive(Resource)]
-struct MandelBrotRenderTarget {
+struct FractalRenderTarget {
     render_target: Handle<Image>
 }
 
-impl MandelBrotRenderTarget {
+impl FractalRenderTarget {
     fn new(
         images: &mut ResMut<Assets<Image>>
     ) -> Self {
@@ -66,7 +66,7 @@ pub struct JuliaC {
 
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
 #[uuid = "8f890807-2d1a-4312-86fc-07660a06e39c"]
-pub struct MandelBrotMaterial {
+pub struct FractalMaterial {
     #[texture(0)]
     #[sampler(1)]
     pub previous_rt: Handle<Image>,
@@ -77,9 +77,9 @@ pub struct MandelBrotMaterial {
     pub julia_c: JuliaC,
 }
 
-impl Material for MandelBrotMaterial {
+impl Material for FractalMaterial {
     fn fragment_shader() -> ShaderRef {
-        "shaders/mandelbrot.wgsl".into()
+        "shaders/fractal.wgsl".into()
     }
 }
 
@@ -87,21 +87,21 @@ pub fn spawn_feedback_shader(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<MandelBrotMaterial>>,
+    mut materials: ResMut<Assets<FractalMaterial>>,
     mut std_materials: ResMut<Assets<StandardMaterial>>,
     assets: Res<AssetServer>,
     chip_spin_texture: Res<ChipSpinTexture>,
 ) {
-    let rt_res = MandelBrotRenderTarget::new(&mut images);
+    let rt_res = FractalRenderTarget::new(&mut images);
 
-    let material_handle = materials.add(MandelBrotMaterial {
+    let material_handle = materials.add(FractalMaterial {
         previous_rt: rt_res.render_target.clone(),
         //image_trap: assets.load("images/trip2.png"),
         image_trap: chip_spin_texture.texture.clone(),
         julia_c: JuliaC {re: 0.2, im: 0.55},
     });
 
-    spawn_fs_quad::<MandelBrotMaterial>(
+    spawn_fs_quad::<FractalMaterial>(
         &mut commands,
         &mut meshes,
         rt_res.render_target.clone(),

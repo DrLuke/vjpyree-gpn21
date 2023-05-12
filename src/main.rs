@@ -1,7 +1,7 @@
 //! Full screen shader effect
 
 mod feedback_shader;
-mod mandelbrot;
+mod fractal;
 mod motto;
 mod chipspin;
 
@@ -23,7 +23,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pyree::beat::{BeatEvent, OscBeatReceiverPlugin};
 use crate::chipspin::ChipSpin;
 use crate::feedback_shader::FeedbackShaderPlugin;
-use crate::mandelbrot::MandelbrotPlugin;
+use crate::fractal::FractalPlugin;
 use crate::motto::Motto;
 
 
@@ -55,7 +55,7 @@ fn main() {
 
         .add_plugin(ChipSpin)
         //.add_plugin(FeedbackShaderPlugin)
-        .add_plugin(MandelbrotPlugin)
+        .add_plugin(FractalPlugin)
         //.add_plugin(Motto)
     ;
 
