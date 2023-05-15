@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, ShaderType, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::reflect::TypeUuid;
-use bevy::render::texture::ImageSampler;
+use bevy::render::texture::{DEFAULT_IMAGE_HANDLE, ImageSampler};
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
@@ -17,19 +17,20 @@ impl Plugin for FractalPlugin {
             .add_plugin(MaterialPlugin::<FractalMaterial>::default())
             .add_asset::<FractalMaterial>()
             .register_asset_reflect::<FractalMaterial>()
+            .init_resource::<FractalRenderTarget>()
         ;
     }
 }
 
 #[derive(Resource)]
-struct FractalRenderTarget {
-    render_target: Handle<Image>
+pub struct FractalRenderTarget {
+    pub render_target: Handle<Image>
 }
 
-impl FractalRenderTarget {
-    fn new(
-        images: &mut ResMut<Assets<Image>>
-    ) -> Self {
+impl FromWorld for FractalRenderTarget {
+    fn from_world(world: &mut World) -> Self {
+        let mut images = world.get_resource_mut::<Assets<Image>>().unwrap();
+
         let size = Extent3d { width: 1920, height: 1080, ..default() };
         let mut image = Image {
             texture_descriptor: TextureDescriptor {
@@ -52,6 +53,7 @@ impl FractalRenderTarget {
             ..default()
         };
         image.resize(size);
+
         Self {
             render_target: images.add(image)
         }
@@ -85,38 +87,33 @@ impl Material for FractalMaterial {
 
 pub fn spawn_feedback_shader(
     mut commands: Commands,
-    mut images: ResMut<Assets<Image>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<FractalMaterial>>,
-    mut std_materials: ResMut<Assets<StandardMaterial>>,
-    assets: Res<AssetServer>,
     chip_spin_texture: Res<ChipSpinTexture>,
+    fractal_rt: Res<FractalRenderTarget>,
 ) {
-    let rt_res = FractalRenderTarget::new(&mut images);
 
     let material_handle = materials.add(FractalMaterial {
-        previous_rt: rt_res.render_target.clone(),
+        previous_rt: fractal_rt.render_target.clone(),
         //image_trap: assets.load("images/trip2.png"),
         image_trap: chip_spin_texture.texture.clone(),
-        julia_c: JuliaC {re: 0.2, im: 0.55},
+        julia_c: JuliaC {re: -0.8696, im: 0.26},
     });
 
     spawn_fs_quad::<FractalMaterial>(
         &mut commands,
         &mut meshes,
-        rt_res.render_target.clone(),
+        fractal_rt.render_target.clone(),
         material_handle,
         2,
         0,
     );
 
-    spawn_render_image_to_screen(
+    /*spawn_render_image_to_screen(
         &mut commands,
         &mut meshes,
         &mut std_materials,
         rt_res.render_target.clone(),
         RenderLayers::layer(31),
-    );
-
-    commands.insert_resource(rt_res);
+    );*/
 }

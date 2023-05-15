@@ -5,6 +5,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
+use crate::fractal::FractalRenderTarget;
 
 
 pub struct FeedbackShaderPlugin;
@@ -65,8 +66,10 @@ pub struct FeedbackShaderMaterial {
     #[texture(0)]
     #[sampler(1)]
     pub previous_rt: Handle<Image>,
-    #[uniform(2)]
-    pub some_val: f32
+    #[texture(2)]
+    #[sampler(3)]
+    pub fractal_rt: Handle<Image>,
+
 }
 
 impl Material for FeedbackShaderMaterial {
@@ -81,12 +84,13 @@ pub fn spawn_feedback_shader(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<FeedbackShaderMaterial>>,
     mut std_materials: ResMut<Assets<StandardMaterial>>,
+    fractal_rt: Res<FractalRenderTarget>,
 ) {
     let rt_res = FeedbackShaderRenderTarget::new(&mut images);
 
     let material_handle = materials.add(FeedbackShaderMaterial {
         previous_rt: rt_res.render_target.clone(),
-        some_val: 123f32
+        fractal_rt: fractal_rt.render_target.clone(),
     });
 
     spawn_fs_quad::<FeedbackShaderMaterial>(
@@ -98,13 +102,13 @@ pub fn spawn_feedback_shader(
         1000,
     );
 
-    /*spawn_render_image_to_screen(
+    spawn_render_image_to_screen(
         &mut commands,
         &mut meshes,
         &mut std_materials,
         rt_res.render_target.clone(),
         RenderLayers::layer(31),
-    );*/
+    );
 
     commands.insert_resource(rt_res);
 }

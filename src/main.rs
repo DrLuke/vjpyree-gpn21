@@ -53,10 +53,10 @@ fn main() {
         .add_plugin(BevyRoscPlugin::new("0.0.0.0:31337").unwrap())
         .add_plugin(OscBeatReceiverPlugin::default())
 
-        .add_plugin(ChipSpin)
-        //.add_plugin(FeedbackShaderPlugin)
-        .add_plugin(FractalPlugin)
         //.add_plugin(Motto)
+        .add_plugin(ChipSpin)
+        .add_plugin(FractalPlugin)
+        .add_plugin(FeedbackShaderPlugin)
     ;
 
     app.run();
