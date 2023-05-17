@@ -1,3 +1,5 @@
+mod ui;
+
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::reflect::TypeUuid;
@@ -5,6 +7,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
+use crate::feedback_shader::ui::ui_system;
 use crate::fractal::FractalRenderTarget;
 
 
@@ -17,6 +20,8 @@ impl Plugin for FeedbackShaderPlugin {
             .add_plugin(MaterialPlugin::<FeedbackShaderMaterial>::default())
             .add_asset::<FeedbackShaderMaterial>()
             .register_asset_reflect::<FeedbackShaderMaterial>()
+
+            .add_system(ui_system)
         ;
     }
 }
@@ -69,7 +74,8 @@ pub struct FeedbackShaderMaterial {
     #[texture(2)]
     #[sampler(3)]
     pub fractal_rt: Handle<Image>,
-
+    #[uniform(4)]
+    pub col_rot: Vec4,
 }
 
 impl Material for FeedbackShaderMaterial {
@@ -91,6 +97,7 @@ pub fn spawn_feedback_shader(
     let material_handle = materials.add(FeedbackShaderMaterial {
         previous_rt: rt_res.render_target.clone(),
         fractal_rt: fractal_rt.render_target.clone(),
+        col_rot: Vec4::new(0.5, 0.5, 0.5, 1.),
     });
 
     spawn_fs_quad::<FeedbackShaderMaterial>(

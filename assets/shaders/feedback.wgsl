@@ -13,7 +13,8 @@ var our_sampler_a: sampler;
 var fractal_t: texture_2d<f32>;
 @group(1) @binding(3)
 var fractal_s: sampler;
-
+@group(1) @binding(4)
+var<uniform> col_rot: vec4<f32>;
 
 fn rot3(axis: vec3<f32>, angle: f32) -> mat3x3<f32> {
     let an = normalize(axis);
@@ -48,13 +49,16 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let dist = length(uv - vec2<f32>(0.5,0.5));
     let circle = (1.-smoothstep(0.2, 0.205, dist));
 
-    let prev_sample = textureSample(texture_a, our_sampler_a, input.uv);
+    let prev_sample = textureSample(texture_a, our_sampler_a, input.uv * 2.);
 
-    let fb_sample = textureSample(texture_a, our_sampler_a, input.uv*2.);
+    var fb_sample = textureSample(texture_a, our_sampler_a, input.uv*1.01);
 
     var output_color = vec4<f32>(circle, fb_sample.b*0.8, (circle*dist*1.) + fb_sample.g*0.8 + fb_sample.r, 1.0);
 
     output_color = textureSample(fractal_t, fractal_s, uv);
+
+    fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
+    output_color = output_color * 0.1 + fb_sample * 0.9;
 
     return output_color;
 }

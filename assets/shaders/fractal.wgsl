@@ -61,7 +61,7 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let origin = Complex(0., 0.);
     //let origin = Complex(-0.25, 0.);
     //let scale = Complex(6., 4.);
-    let scale = 1./1.;
+    let scale = 2./1.;
 
     var Z = Complex(uvca.x*scale + origin.re, uvca.y*scale + origin.im);
     var C = Complex(julia_c.re + sin(globals.time)*0.1, julia_c.im + cos(globals.time*0.8902)*0.1);
@@ -73,8 +73,8 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
         let t = trap(Z);
         if(t.w > 0.01) {
-            let col = vec3<f32>(t.r, t.g, t.b) * rot3(vec3<f32>(1., 0.4, 1.), f32(i)*0. + globals.time);
-            output_color = vec4<f32>(col, 1.) / (f32(i)/1. + 1.);
+            let col = vec3<f32>(t.r, t.g, t.b) * rot3(vec3<f32>(1., 0.4, 1.), f32(i)*0. + globals.time*0.);
+            output_color = vec4<f32>(col, 1.) / (f32(i)/2. + 1.);
 
             break;
         }
