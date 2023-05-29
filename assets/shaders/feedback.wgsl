@@ -1,3 +1,6 @@
+#import bevy_pbr::mesh_types
+#import bevy_pbr::mesh_view_bindings
+
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) world_position: vec4<f32>,

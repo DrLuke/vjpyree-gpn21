@@ -4,6 +4,7 @@ mod feedback_shader;
 mod fractal;
 mod motto;
 mod chipspin;
+mod rd;
 
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
@@ -25,6 +26,7 @@ use crate::chipspin::ChipSpin;
 use crate::feedback_shader::FeedbackShaderPlugin;
 use crate::fractal::FractalPlugin;
 use crate::motto::Motto;
+use crate::rd::RDPlugin;
 
 
 fn main() {
@@ -54,9 +56,10 @@ fn main() {
         .add_plugin(OscBeatReceiverPlugin::default())
 
         //.add_plugin(Motto)
-        .add_plugin(ChipSpin)
-        .add_plugin(FractalPlugin)
-        .add_plugin(FeedbackShaderPlugin)
+        //.add_plugin(ChipSpin)
+        //.add_plugin(FractalPlugin)
+        .add_plugin(RDPlugin)
+        //.add_plugin(FeedbackShaderPlugin)
     ;
 
     app.run();
