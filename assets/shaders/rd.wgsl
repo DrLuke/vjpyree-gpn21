@@ -12,6 +12,14 @@ struct VertexOutput {
 var prev_tex: texture_2d<f32>;
 @group(1) @binding(1)
 var prev_samp: sampler;
+@group(1) @binding(2)
+var<uniform> uniform_da: f32;
+@group(1) @binding(3)
+var<uniform> uniform_db: f32;
+@group(1) @binding(4)
+var<uniform> uniform_feed: f32;
+@group(1) @binding(5)
+var<uniform> uniform_kill: f32;
 
 fn rot3(axis: vec3<f32>, angle: f32) -> mat3x3<f32> {
     let an = normalize(axis);
@@ -41,62 +49,36 @@ fn rgb2hsv(c: vec3<f32>) -> vec3<f32> {
 fn laplace(uv: vec2<f32>) -> vec4<f32>
 {
     var out_val = textureSample(prev_tex, prev_samp, uv) * 9.;
-    /*out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, -0.0009765625)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, -0.00048828125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.0)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.00048828125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.0009765625)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.00048828125, -0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.00048828125, -0.00048828125)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.00048828125, 0.0)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.00048828125, 0.00048828125)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.00048828125, 0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, -0.0009765625)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, -0.00048828125)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.0)) * 1.0;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.00048828125)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.0009765625)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.00048828125, -0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.00048828125, -0.00048828125)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.00048828125, 0.0)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.00048828125, 0.00048828125)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.00048828125, 0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, -0.0009765625)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, -0.00048828125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.0)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.00048828125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.0009765625)) * 0.04000000000000001;*/
+	var resolution = 1024.0;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-2.0/resolution, -2.0/resolution)) * 0.04;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-2.0/resolution, -1.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-2.0/resolution, 0.0/resolution)) * 0.20;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-2.0/resolution, 1.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-2.0/resolution, 2.0/resolution)) * 0.04;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-1.0/resolution, -2.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-1.0/resolution, -1.0/resolution)) * 0.64;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-1.0/resolution, 0.0/resolution)) * 0.80;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-1.0/resolution, 1.0/resolution)) * 0.64;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-1.0/resolution, 2.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0/resolution, -2.0/resolution)) * 0.20;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0/resolution, -1.0/resolution)) * 0.80;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0/resolution, 0.0/resolution)) * 1.00;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0/resolution, 1.0/resolution)) * 0.80;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0/resolution, 2.0/resolution)) * 0.20;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(1.0/resolution, -2.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(1.0/resolution, -1.0/resolution)) * 0.64;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(1.0/resolution, 0.0/resolution)) * 0.80;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(1.0/resolution, 1.0/resolution)) * 0.64;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(1.0/resolution, 2.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(2.0/resolution, -2.0/resolution)) * 0.04;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(2.0/resolution, -1.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(2.0/resolution, 0.0/resolution)) * 0.20;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(2.0/resolution, 1.0/resolution)) * 0.16;
+	out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(2.0/resolution, 2.0/resolution)) * 0.04;
 
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.001953125, -0.001953125)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.001953125, -0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.001953125, 0.0)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.001953125, 0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.001953125, 0.001953125)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, -0.001953125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, -0.0009765625)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.0)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.0009765625)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(-0.0009765625, 0.001953125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, -0.001953125)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, -0.0009765625)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.0)) * 1.0;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.0009765625)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0, 0.001953125)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, -0.001953125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, -0.0009765625)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.0)) * 0.8;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.0009765625)) * 0.6400000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.0009765625, 0.001953125)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.001953125, -0.001953125)) * 0.04000000000000001;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.001953125, -0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.001953125, 0.0)) * 0.2;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.001953125, 0.0009765625)) * 0.16000000000000003;
-    out_val -= textureSample(prev_tex, prev_samp, uv + vec2<f32>(0.001953125, 0.001953125)) * 0.04000000000000001;
 
     return out_val * 0.25;
 }
-
-const resolution = vec2<f32>(2048., 2048.);
 
 fn rd1(uv: vec2<f32>) -> vec4<f32>
 {
@@ -104,12 +86,10 @@ fn rd1(uv: vec2<f32>) -> vec4<f32>
     let lap = -laplace(uv);
 
     let uvf = ((uv - vec2<f32>(0.5))*2.);
-    let Da = 1.;
-    let Db = 0.2 + sin(length(uvf)*10.) * 0.15;
-    let f = 0.0287;
-    let k = .078;
-
-    let powfac = 2.;
+    let Da = uniform_da;
+    let Db = uniform_db + sin(length(uvf)*10.) * 0.15;
+    let f = uniform_feed;
+    let k = uniform_kill;
 
     let new_stuff = vec2<f32>(
             Da * lap.r - prev.r * prev.g*prev.g + f * clamp(1.0 - prev.r, 0., 1.),

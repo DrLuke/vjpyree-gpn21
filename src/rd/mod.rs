@@ -1,11 +1,14 @@
+mod ui;
+
 use bevy::prelude::*;
-use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, FilterMode, SamplerDescriptor, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::reflect::TypeUuid;
 use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
 use crate::fractal::FractalRenderTarget;
+use crate::rd::ui::ui_system;
 
 
 pub struct RDPlugin;
@@ -17,6 +20,8 @@ impl Plugin for RDPlugin {
             .add_plugin(MaterialPlugin::<RDShaderMaterial>::default())
             .add_asset::<RDShaderMaterial>()
             .register_asset_reflect::<RDShaderMaterial>()
+
+            .add_system(ui_system)
 
             .init_resource::<RDRenderTarget>()
         ;
@@ -38,7 +43,7 @@ impl FromWorld for RDRenderTarget {
                 label: None,
                 size,
                 dimension: TextureDimension::D2,
-                format: TextureFormat::Rgba32Float,
+                format: TextureFormat::Rgba16Float,
                 mip_level_count: 1,
                 sample_count: 1,
                 usage: TextureUsages::TEXTURE_BINDING
@@ -67,6 +72,14 @@ pub struct RDShaderMaterial {
     #[texture(0)]
     #[sampler(1)]
     pub previous_rt: Handle<Image>,
+    #[uniform(2)]
+    pub da: f32,
+    #[uniform(3)]
+    pub db: f32,
+    #[uniform(4)]
+    pub feed: f32,
+    #[uniform(5)]
+    pub kill: f32,
 }
 
 impl Material for RDShaderMaterial {
@@ -85,6 +98,10 @@ pub fn spawn_rd(
 
     let material_handle = materials.add(RDShaderMaterial {
         previous_rt: rd_rt.render_target.clone(),
+        da: 1.0,
+        db: 0.3,
+        feed: 0.0287,
+        kill: 0.078,
     });
 
     spawn_fs_quad::<RDShaderMaterial>(
