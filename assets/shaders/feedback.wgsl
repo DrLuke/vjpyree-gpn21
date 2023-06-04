@@ -9,14 +9,18 @@ struct VertexOutput {
 };
 
 @group(1) @binding(0)
-var texture_a: texture_2d<f32>;
+var prev_t: texture_2d<f32>;
 @group(1) @binding(1)
-var our_sampler_a: sampler;
+var prev_s: sampler;
 @group(1) @binding(2)
 var fractal_t: texture_2d<f32>;
 @group(1) @binding(3)
 var fractal_s: sampler;
 @group(1) @binding(4)
+var rd_t: texture_2d<f32>;
+@group(1) @binding(5)
+var rd_s: sampler;
+@group(1) @binding(6)
 var<uniform> col_rot: vec4<f32>;
 
 fn rot3(axis: vec3<f32>, angle: f32) -> mat3x3<f32> {
@@ -44,24 +48,51 @@ fn rgb2hsv(c: vec3<f32>) -> vec3<f32> {
     return vec3<f32>(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
 }
 
+// Scale UV coordinates around the point (0.5, 0.5)
+fn uvcscale(uv: vec2<f32>, scale: f32) -> vec2<f32> {
+   return (uv - vec2<f32>(0.5)) * scale + vec2<f32>(0.5);
+}
+
+fn uvcrot(uv: vec2<f32>, angle: f32) -> vec2<f32> {
+    return (uv - vec2<f32>(0.5)) * rot2(angle) + vec2<f32>(0.5);
+}
+
+// Color palette by Inigo Quilezles https://iquilezles.org/articles/palettes/
+fn palette(t: f32, a: vec3<f32>, b: vec3<f32>, c: vec3<f32>, d: vec3<f32>) -> vec3<f32> {
+    return a + b*cos( 6.28318*(c*t+d) );
+}
+
+fn palette1(t: f32) -> vec3<f32> {
+    return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(1.), vec3<f32>(0.00, 0.33, 0.67));
+}
+
+
 @fragment
 fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
+    let res = vec2<f32>(1920., 610.);
+    let aspect = res.x/res.y;
     let uv = vec2<f32>(input.uv.x, input.uv.y);
+    let uva = vec2<f32>((input.uv.x - 0.5) * aspect + 0.5, input.uv.y);
 
     // Circle
-    let dist = length(uv - vec2<f32>(0.5,0.5));
-    let circle = (1.-smoothstep(0.2, 0.205, dist));
+    let prev_sample = textureSample(prev_t, prev_s, input.uv); // 1:1 sample
+    let prev_hsv = rgb2hsv(prev_sample.rgb);
 
-    let prev_sample = textureSample(texture_a, our_sampler_a, input.uv * 2.);
+    // Feedback sampler effects
+    var hsv_angle = prev_hsv.x * 3.14159 * 2.;
+    var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.0004;
+    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv + sample_offset, 1.));
 
-    var fb_sample = textureSample(texture_a, our_sampler_a, input.uv*1.01);
 
-    var output_color = vec4<f32>(circle, fb_sample.b*0.8, (circle*dist*1.) + fb_sample.g*0.8 + fb_sample.r, 1.0);
+    // Output
+    var output_color = vec4<f32>(0.);
 
-    output_color = textureSample(fractal_t, fractal_s, uv);
+    // RD sample
+    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1));
+    output_color = vec4<f32>(palette1(length(rd_sample)), 1.) * rd_sample.z;
 
     fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
-    output_color = output_color * 0.1 + fb_sample * 0.9;
+    output_color = output_color * rd_sample.z + fb_sample * 0.9;
 
     return output_color;
 }

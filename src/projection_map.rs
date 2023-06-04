@@ -20,6 +20,7 @@ fn setup(
     mut color_materials: ResMut<Assets<ColorMaterial>>,
     fractal_rt: Res<FractalRenderTarget>,
     rd_rt: Res<RDRenderTarget>,
+    feedback_rt: Res<FeedbackShaderRenderTarget>,
 ) {
     commands.spawn(Camera2dBundle {
         camera_2d: Camera2d {
@@ -38,7 +39,7 @@ fn setup(
 
     // Top rectangle
     commands.spawn(SpriteBundle {
-        texture: rd_rt.render_target.clone(),
+        texture: feedback_rt.render_target.clone(),
         sprite: Sprite {
             custom_size: Some(Vec2::new(1920., 610.)),
             ..default()
@@ -91,6 +92,7 @@ use bevy::window::{PresentMode, WindowMode, WindowRef};
 
 use crate::WindowResolution;
 use bevy_egui::{egui, EguiContexts};
+use crate::feedback_shader::{FeedbackShaderMaterial, FeedbackShaderRenderTarget};
 
 
 pub fn ui_system(mut contexts: EguiContexts, mut commands: Commands) {

@@ -88,8 +88,8 @@ fn rd1(uv: vec2<f32>) -> vec4<f32>
     let uvf = ((uv - vec2<f32>(0.5))*2.);
     let Da = uniform_da;
     let Db = uniform_db;// + sin(length(uvf)*10.) * 0.15;
-    let f = uniform_feed;
-    let k = uniform_kill;
+    let f = uniform_feed + sin(length(uvf)*10.)*0.015;
+    let k = uniform_kill + length(uvf)*0.006 + sin(length(uvf)*10.)*0.015;
 
     let new_stuff = vec2<f32>(
             Da * lap.r - prev.r * prev.g*prev.g + f * clamp(1.0 - prev.r, 0., 1.),
@@ -99,7 +99,7 @@ fn rd1(uv: vec2<f32>) -> vec4<f32>
     return vec4<f32>(
     prev.r + new_stuff.r,
     prev.g + new_stuff.g,
-    lap.r * 30. + lap.g * 30.,
+    lap.r * 30.,
     lap.g * 30.);
 }
 

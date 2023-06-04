@@ -146,11 +146,11 @@ pub fn spawn_rd(
         })
         .insert(RenderLayers::layer(4));
 
-    spawn_render_image_to_screen(
+    /*spawn_render_image_to_screen(
         &mut commands,
         &mut meshes,
         &mut std_materials,
         rd_rt.render_target.clone(),
         RenderLayers::layer(31),
-    );
+    );*/
 }
