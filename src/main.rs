@@ -42,6 +42,7 @@ fn main() {
             .set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "VJ Pyree".into(),
+                    position: WindowPosition::Centered(MonitorSelection::Primary),
                     resolution: WindowResolution::new(1920., 1080.)
                         .with_scale_factor_override(1.75),
                     ..default()
