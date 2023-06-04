@@ -73,15 +73,16 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let aspect = res.x/res.y;
     let uv = vec2<f32>(input.uv.x, input.uv.y);
     let uva = vec2<f32>((input.uv.x - 0.5) * aspect + 0.5, input.uv.y);
+    let uv11a = vec2<f32>(input.uv.x - 0.5, input.uv.y - 0.5)*2. * vec2<f32>(aspect, 1.);
 
     // Circle
     let prev_sample = textureSample(prev_t, prev_s, input.uv); // 1:1 sample
     let prev_hsv = rgb2hsv(prev_sample.rgb);
 
     // Feedback sampler effects
-    var hsv_angle = prev_hsv.x * 3.14159 * 2.;
-    var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.0004;
-    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv + sample_offset, 1.));
+    var hsv_angle = prev_hsv.x * 3.14159 * 2. + atan2(uv11a.y, uv11a.x) + 3.14159*0.75;
+    var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.001;
+    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv + sample_offset, 1.001));
 
 
     // Output
@@ -89,10 +90,12 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
     // RD sample
     var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1));
-    output_color = vec4<f32>(palette1(length(rd_sample)), 1.) * rd_sample.z;
+    var rd_strength = rd_sample.x ;
+    var mask = smoothstep(rd_strength, 0.1, 0.9);
+    output_color = vec4<f32>(palette1(rd_strength + globals.time * 0.1), 1.);
 
     fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
-    output_color = output_color * rd_sample.z + fb_sample * 0.9;
+    output_color = output_color * mask * 0.9 + fb_sample * (1.-mask) * 0.985;
 
     return output_color;
 }

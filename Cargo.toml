@@ -11,6 +11,7 @@ rosc = "0.9.1"
 bevy = { version = "0.10", default-features = true }
 bevy_egui = "0.20.3"
 bevy_smud = {git="https://github.com/johanhelsing/bevy_smud", branch="params"}
+rand = "0.8.5"
 
 # Significantly improve performance while developing
 [profile.dev.package."*"]

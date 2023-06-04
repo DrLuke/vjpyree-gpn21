@@ -43,7 +43,7 @@ impl FromWorld for FeedbackShaderRenderTarget {
                 label: None,
                 size,
                 dimension: TextureDimension::D2,
-                format: TextureFormat::Rgba32Float,
+                format: TextureFormat::Rgba16Float,
                 mip_level_count: 1,
                 sample_count: 1,
                 usage: TextureUsages::TEXTURE_BINDING
