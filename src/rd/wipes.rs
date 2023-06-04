@@ -51,7 +51,32 @@ pub struct WipeElement {
     age: f32,
 }
 
-fn spawn_wipe(trigger: WipeEvent, commands: &mut Commands, shaders: &mut ResMut<Assets<Shader>>) {
+#[derive(Resource)]
+pub struct WipeShaders {
+    pub circle: Handle<Shader>,
+    pub octagon: Handle<Shader>,
+    pub cross: Handle<Shader>,
+    pub square: Handle<Shader>,
+}
+
+impl FromWorld for WipeShaders {
+    fn from_world(world: &mut World) -> Self {
+        let mut shaders = world.get_resource_mut::<Assets<Shader>>().unwrap();
+        Self {
+            circle: shaders.add_sdf_expr("sd_circle(p, params.x)"),
+            octagon:  shaders.add_sdf_expr("sd_octagon(p, params.x)"),
+            cross:  shaders.add_sdf_expr("sd_cross(p, vec2<f32>(params.x, params.x * 0.3), 0.1)"),
+            square: shaders.add_sdf_expr("sd_circle(p, params.x)"),
+        }
+    }
+}
+
+fn spawn_wipe(
+    trigger: WipeEvent,
+    commands: &mut Commands,
+    shaders: &mut ResMut<Assets<Shader>>,
+    wipe_shader: Handle<Shader>,
+) {
     let fill = shaders.add_fill_body(
         r"
             let d_2 = abs(d - 1.) - 1.;
@@ -62,19 +87,6 @@ fn spawn_wipe(trigger: WipeEvent, commands: &mut Commands, shaders: &mut ResMut<
 
     for step in 0..trigger.steps {
         let step_size = trigger.step_size(step);
-        let sdf = match trigger.shape {
-            WipeShape::Circle => shaders.add_sdf_expr(format!("sd_circle(p, {step_size:.10})")),
-            WipeShape::Octagon => shaders.add_sdf_expr(format!("sd_octagon(p, {step_size:.10})")),
-            WipeShape::Cross => {
-                let cross_size = step_size * 0.3;
-                shaders.add_sdf_expr(format!(
-                    "sd_cross(p, vec2<f32>({step_size:.10}, {cross_size:.10}), 0.1)"
-                ))
-            }
-            WipeShape::Square => {
-                shaders.add_sdf_expr(format!("sd_circle(p, {:.10})", trigger.step_size(step)))
-            }
-        };
         commands
             .spawn((
                 WipeElement {
@@ -92,9 +104,10 @@ fn spawn_wipe(trigger: WipeEvent, commands: &mut Commands, shaders: &mut ResMut<
                     ShapeBundle {
                         shape: SmudShape {
                             color: Color::GREEN,
-                            sdf,
+                            sdf: wipe_shader.clone(),
                             frame: Frame::Quad(55.),
                             fill: fill.clone(),
+                            params: Vec4::new(step_size, 0., 0., 0.),
                             ..default()
                         },
                         transform: Transform::from_xyz(0.0, 0.0, 1.),
@@ -110,9 +123,16 @@ pub fn wipe_event_listener_system(
     mut event_reader: EventReader<WipeEvent>,
     mut commands: Commands,
     mut shaders: ResMut<Assets<Shader>>,
+    wipe_shaders: Local<WipeShaders>,
 ) {
     for event in event_reader.iter() {
-        spawn_wipe(event.clone(), &mut commands, &mut shaders)
+        let sdf = match event.shape {
+            WipeShape::Circle => wipe_shaders.circle.clone(),
+            WipeShape::Octagon => wipe_shaders.octagon.clone(),
+            WipeShape::Cross => wipe_shaders.cross.clone(),
+            WipeShape::Square => wipe_shaders.square.clone(),
+        };
+        spawn_wipe(event.clone(), &mut commands, &mut shaders, sdf)
     }
 }
 
