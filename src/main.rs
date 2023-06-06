@@ -6,6 +6,7 @@ mod motto;
 mod chipspin;
 mod rd;
 mod projection_map;
+mod automation;
 
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
@@ -23,6 +24,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::window::WindowResolution;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pyree::beat::{BeatEvent, OscBeatReceiverPlugin};
+use crate::automation::AutomationPlugin;
 use crate::chipspin::ChipSpin;
 use crate::feedback_shader::FeedbackShaderPlugin;
 use crate::fractal::FractalPlugin;
@@ -64,6 +66,8 @@ fn main() {
         .add_plugin(RDPlugin)
         .add_plugin(FeedbackShaderPlugin)
         .add_plugin(ProjectionMapPlugin)
+
+        .add_plugin(AutomationPlugin)
     ;
 
     app.run();

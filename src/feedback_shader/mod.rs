@@ -1,13 +1,13 @@
-mod ui;
+pub mod ui;
 
 use bevy::prelude::*;
-use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, SamplerDescriptor, ShaderRef, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::render_resource::{AddressMode, AsBindGroup, Extent3d, FilterMode, SamplerDescriptor, ShaderRef, ShaderType, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::reflect::TypeUuid;
 use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use bevy_pyree::render::{FSQuad, spawn_fs_quad, spawn_render_image_to_screen};
-use crate::feedback_shader::ui::ui_system;
+use crate::feedback_shader::ui::{FeedbackControlsAutomation, ui_system};
 use crate::fractal::FractalRenderTarget;
 use crate::rd::RDRenderTarget;
 
@@ -21,7 +21,9 @@ impl Plugin for FeedbackShaderPlugin {
             .add_plugin(MaterialPlugin::<FeedbackShaderMaterial>::default())
             .add_asset::<FeedbackShaderMaterial>()
             .register_asset_reflect::<FeedbackShaderMaterial>()
+
             .init_resource::<FeedbackShaderRenderTarget>()
+            .init_resource::<FeedbackControlsAutomation>()
 
             .add_system(ui_system)
         ;
@@ -54,6 +56,8 @@ impl FromWorld for FeedbackShaderRenderTarget {
             sampler_descriptor: ImageSampler::Descriptor(SamplerDescriptor {
                 address_mode_u: AddressMode::Repeat,
                 address_mode_v: AddressMode::Repeat,
+                min_filter: FilterMode::Linear,
+                mag_filter: FilterMode::Linear,
                 ..Default::default()
             }),
             ..default()
@@ -64,6 +68,26 @@ impl FromWorld for FeedbackShaderRenderTarget {
             render_target: images.add(image),
         }
     }
+}
+
+#[derive(Clone, Copy, Default, Reflect, FromReflect, ShaderType)]
+pub struct UniformParams {
+    pub p0: f32,
+    pub p1: f32,
+    pub p2: f32,
+    pub p3: f32,
+    pub p4: f32,
+    pub p5: f32,
+    pub p6: f32,
+    pub p7: f32,
+}
+
+#[derive(Clone, Copy, Default, Reflect, FromReflect, ShaderType)]
+pub struct BeatStuff {
+    pub beat: f32,
+    pub beatpt1: f32,
+    pub beataccum: f32,
+    pub beataccumpt1: f32,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
@@ -80,6 +104,12 @@ pub struct FeedbackShaderMaterial {
     pub rd_rt: Handle<Image>,
     #[uniform(6)]
     pub col_rot: Vec4,
+    #[uniform(7)]
+    pub rand: UniformParams,
+    #[uniform(8)]
+    pub randpt1: UniformParams,
+    #[uniform(9)]
+    pub beat_stuff: BeatStuff,
 }
 
 impl Material for FeedbackShaderMaterial {
@@ -103,6 +133,9 @@ pub fn spawn_feedback_shader(
         fractal_rt: fractal_rt.render_target.clone(),
         rd_rt: rd_rt.render_target.clone(),
         col_rot: Vec4::new(0.5, 0.5, 0.5, 1.),
+        rand: UniformParams::default(),
+        randpt1: UniformParams::default(),
+        beat_stuff: BeatStuff::default(),
     });
 
     spawn_fs_quad::<FeedbackShaderMaterial>(

@@ -8,6 +8,17 @@ struct VertexOutput {
     @location(2) uv: vec2<f32>,
 };
 
+struct UniformParams {
+    p0: f32,
+    p1: f32,
+    p2: f32,
+    p3: f32,
+    p4: f32,
+    p5: f32,
+    p6: f32,
+    p7: f32,
+}
+
 @group(1) @binding(0)
 var prev_t: texture_2d<f32>;
 @group(1) @binding(1)
@@ -22,6 +33,10 @@ var rd_t: texture_2d<f32>;
 var rd_s: sampler;
 @group(1) @binding(6)
 var<uniform> col_rot: vec4<f32>;
+@group(1) @binding(7)
+var<uniform> rand: UniformParams;
+@group(1) @binding(8)
+var<uniform> randpt1: UniformParams;
 
 fn rot3(axis: vec3<f32>, angle: f32) -> mat3x3<f32> {
     let an = normalize(axis);
@@ -75,27 +90,27 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let uva = vec2<f32>((input.uv.x - 0.5) * aspect + 0.5, input.uv.y);
     let uv11a = vec2<f32>(input.uv.x - 0.5, input.uv.y - 0.5)*2. * vec2<f32>(aspect, 1.);
 
-    // Circle
+    // Prev
     let prev_sample = textureSample(prev_t, prev_s, input.uv); // 1:1 sample
     let prev_hsv = rgb2hsv(prev_sample.rgb);
 
     // Feedback sampler effects
-    var hsv_angle = prev_hsv.x * 3.14159 * 2. + atan2(uv11a.y, uv11a.x) + 3.14159*0.75;
+    var hsv_angle = prev_hsv.x * 3.14159 * 4. + atan2(uv11a.y, uv11a.x)*1.;
     var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.001;
-    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv + sample_offset, 1.001));
+    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv, 1.001) - sample_offset);
 
 
     // Output
     var output_color = vec4<f32>(0.);
 
     // RD sample
-    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1));
+    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1 + randpt1.p4));
     var rd_strength = rd_sample.x ;
-    var mask = smoothstep(rd_strength, 0.1, 0.9);
-    output_color = vec4<f32>(palette1(rd_strength + globals.time * 0.1), 1.);
+    var mask = 1.-smoothstep(rd_sample.y, 0.3, 0.5);
+    output_color = vec4<f32>(palette1(rd_strength + globals.time * 0.1 + length(uv11a)), 1.);
 
     fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
-    output_color = output_color * mask * 0.9 + fb_sample * (1.-mask) * 0.985;
+    output_color = output_color * mask * 0.9 + fb_sample * (1.-mask) * 0.99;
 
     return output_color;
 }
