@@ -7,7 +7,7 @@ use rand::distributions::Standard;
 use rand::prelude::Distribution;
 use rand::Rng;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum WipeShape {
     Circle,
     Octagon,

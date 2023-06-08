@@ -1,5 +1,5 @@
-mod ui;
-mod wipes;
+pub mod ui;
+pub mod wipes;
 
 use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::prelude::*;
@@ -13,7 +13,7 @@ use bevy::render::texture::ImageSampler;
 use bevy::render::view::RenderLayers;
 
 use crate::fractal::FractalRenderTarget;
-use crate::rd::ui::ui_system;
+use crate::rd::ui::{ui_system, WipeAutomationControls};
 use crate::rd::wipes::{wipe_event_listener_system, wipe_system, WipeEvent};
 use bevy_pyree::render::{spawn_fs_quad, spawn_render_image_to_screen, FSQuad};
 use bevy_smud::SmudPlugin;
@@ -32,6 +32,7 @@ impl Plugin for RDPlugin {
             .add_event::<WipeEvent>()
             .add_system(wipe_event_listener_system)
             .add_system(wipe_system)
+            .init_resource::<WipeAutomationControls>()
         ;
     }
 }

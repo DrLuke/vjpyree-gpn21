@@ -1,9 +1,12 @@
 use std::ops::Range;
 use bevy::prelude::*;
 use bevy_pyree::beat::{BeatCounter, BeatEvent};
-use rand::random;
+use rand::distributions::Uniform;
+use rand::{random, Rng};
 use crate::feedback_shader::FeedbackShaderMaterial;
 use crate::feedback_shader::ui::FeedbackControlsAutomation;
+use crate::rd::ui::WipeAutomationControls;
+use crate::rd::wipes::WipeEvent;
 
 
 pub struct AutomationPlugin;
@@ -12,6 +15,7 @@ impl Plugin for AutomationPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system(fb_automation)
+            .add_system(rd_automation)
         ;
     }
 }
@@ -92,4 +96,42 @@ fn fb_automation(
     pt1_param(&mut mat.randpt1.p5, mat.rand.p5, controls.pt1[5], time.delta_seconds());
     pt1_param(&mut mat.randpt1.p6, mat.rand.p6, controls.pt1[6], time.delta_seconds());
     pt1_param(&mut mat.randpt1.p7, mat.rand.p7, controls.pt1[7], time.delta_seconds());
+}
+
+fn rd_automation(
+    mut beat_event_listener: EventReader<BeatEvent>,
+    mut controls: ResMut<WipeAutomationControls>,
+    mut materials: ResMut<Assets<FeedbackShaderMaterial>>,
+    mut mat_query: Query<&Handle<FeedbackShaderMaterial>>,
+    time: Res<Time>,
+    beat_counter: Res<BeatCounter>,
+    mut local_event: Local<WipeEvent>,
+    mut event_writer: EventWriter<WipeEvent>,
+) {
+     for beat_event in &mut beat_event_listener {
+        controls.beat_count += 1;
+         if controls.beat_count >= controls.beat_div {
+             controls.beat_count = 0;
+         }
+         if controls.beat_count > 0 { continue; }
+
+        if controls.randomize_min {
+            local_event.start_size = scale_rand(&controls.min_range);
+        }
+        if controls.randomize_max {
+            local_event.end_size = scale_rand(&controls.max_range);
+        }
+        if controls.randomize_steps {
+            local_event.steps = rand::thread_rng().gen_range(controls.steps_range.clone());
+        }
+        if controls.randomize_shape {
+            local_event.shape = random();
+        } else {
+            local_event.shape = controls.shape.clone();
+        }
+
+        if controls.on_beat {
+         event_writer.send(local_event.clone());
+        }
+    }
 }
