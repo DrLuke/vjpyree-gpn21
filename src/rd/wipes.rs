@@ -74,6 +74,7 @@ pub struct WipeShaders {
     pub cross: Handle<Shader>,
     pub square: Handle<Shader>,
     pub hexagram: Handle<Shader>,
+    pub fill: Handle<Shader>,
 }
 
 impl FromWorld for WipeShaders {
@@ -85,6 +86,13 @@ impl FromWorld for WipeShaders {
             cross:  shaders.add_sdf_expr("sd_cross(p, vec2<f32>(params.x, params.x * 0.3), 0.1)"),
             square: shaders.add_sdf_expr("sd_box(p, vec2<f32>(params.x))"),
             hexagram: shaders.add_sdf_expr("sd_hexagram(p, params.x)"),
+            fill: shaders.add_fill_body(
+                r"
+                    let d_2 = abs(d - 1.) - 1.;
+                    let a = sd_fill_alpha_fwidth(d_2);
+                    return vec4<f32>(color.rgb, a * color.a);
+                    ",
+            )
         }
     }
 }
@@ -94,15 +102,8 @@ fn spawn_wipe(
     commands: &mut Commands,
     shaders: &mut ResMut<Assets<Shader>>,
     wipe_shader: Handle<Shader>,
+    fill: Handle<Shader>,
 ) {
-    let fill = shaders.add_fill_body(
-        r"
-            let d_2 = abs(d - 1.) - 1.;
-            let a = sd_fill_alpha_fwidth(d_2);
-            return vec4<f32>(color.rgb, a * color.a);
-            ",
-    );
-
     for step in 0..trigger.steps {
         let step_size = trigger.step_size(step);
         commands
@@ -151,7 +152,7 @@ pub fn wipe_event_listener_system(
             WipeShape::Square => wipe_shaders.square.clone(),
             WipeShape::Hexagram => wipe_shaders.hexagram.clone(),
         };
-        spawn_wipe(event.clone(), &mut commands, &mut shaders, sdf)
+        spawn_wipe(event.clone(), &mut commands, &mut shaders, sdf, wipe_shaders.fill.clone())
     }
 }
 
