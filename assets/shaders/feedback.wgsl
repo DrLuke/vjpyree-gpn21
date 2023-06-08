@@ -28,6 +28,7 @@ struct Beat {
 
 struct Settings {
     palette: f32,
+    mirror_x: f32,
 }
 
 @group(1) @binding(0)
@@ -162,8 +163,14 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     var output_color = vec4<f32>(0.);
 
     // RD sample
-    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1 + randpt1.p4 + beat.accumpt1 * 0.1));
-    var rd_strength = rd_sample.x ;
+    var rd_uv = uva;
+    if ( settings.mirror_x > 0.) {
+        rd_uv.x = abs(rd_uv.x - 0.5) + 0.5;
+    }
+    rd_uv = uvcrot(rd_uv, globals.time*0.1 + randpt1.p4 + beat.accumpt1 * 0.1);
+
+    var rd_sample = textureSample(rd_t, rd_s, rd_uv);
+    var rd_strength = rd_sample.x;
     var mask = 1.-smoothstep(rd_sample.y, 0.3, 0.5);
     output_color = vec4<f32>(pal(settings.palette, rd_strength + globals.time * 0.1 + length(uv11a)), 1.);
 

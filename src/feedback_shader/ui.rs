@@ -206,5 +206,12 @@ pub fn ui_system(
             if ui.button("Freestyle").clicked() { mat.settings.palette = 5. }
             ui.checkbox(&mut fb_controls_automation.rand_pal, "Rand");
         });
+
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            if ui.button("None").clicked() { mat.settings.mirror_x = 0. }
+            if ui.button("Mirror X").clicked() { mat.settings.mirror_x = 1. }
+        })
     });
 }

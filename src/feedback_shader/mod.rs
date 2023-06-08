@@ -93,6 +93,7 @@ pub struct BeatStuff {
 #[derive(Clone, Copy, Default, Reflect, FromReflect, ShaderType)]
 pub struct FBSettings {
     pub palette: f32,
+    pub mirror_x: f32,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
