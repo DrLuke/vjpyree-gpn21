@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::rd::wipes::{WipeEvent, WipeShape};
 use crate::rd::RDShaderMaterial;
 use bevy_egui::{egui, EguiContexts};
+use rand::random;
 
 pub fn ui_system(
     mut contexts: EguiContexts,
@@ -122,6 +123,18 @@ pub fn ui_system(
                     ..*local_event
                 })
             }
+            if ui.button("Hexagram").clicked() {
+                event_writer.send(WipeEvent {
+                    shape: WipeShape::Hexagram,
+                    ..*local_event
+                })
+            }
         });
+        if ui.button("Random Shape").clicked() {
+            event_writer.send(WipeEvent {
+                shape: random(),
+                ..*local_event
+            })
+        }
     });
 }

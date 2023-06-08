@@ -19,6 +19,7 @@ pub struct FeedbackControlsAutomation {
     pub pt1: [f32; 8],
     pub beatpt1: f32,
     pub beataccumpt1: f32,
+    pub rand_pal: bool,
 }
 
 impl FromWorld for FeedbackControlsAutomation {
@@ -31,12 +32,13 @@ impl FromWorld for FeedbackControlsAutomation {
             col_r_range: 0. ..1.,
             col_g_range: 0. ..1.,
             col_b_range: 0. ..1.,
-            col_w_range: 0. ..1.,
+            col_w_range: -0.05 ..0.05,
             rand: [false; 8],
             rand_range: [0. ..1., 0. ..1., 0. ..1., 0. ..1., 0. ..1., 0. ..1., 0. ..1., 0. ..1.],
             pt1: [0.3; 8],
             beatpt1: 0.3,
             beataccumpt1: 0.,
+            rand_pal: false,
         }
     }
 }
@@ -182,11 +184,27 @@ pub fn ui_system(
             .show(ui, |ui| {
                 ui.label("");
                 ui.label("PT1");
+                ui.label("Val");
                 ui.end_row();
 
                 ui.label("Beat");
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.beatpt1).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
+                ui.label(format!("{:.2}", mat.beat_stuff.beat));
+                ui.label(format!("{:.2}", mat.beat_stuff.beatpt1));
+                ui.label(format!("{:.2}", mat.beat_stuff.beataccum));
+                ui.label(format!("{:.2}", mat.beat_stuff.beataccumpt1));
                 ui.end_row();
+        });
+
+        ui.separator();
+        ui.horizontal(|ui|{
+            if ui.button("Rainbow").clicked() { mat.settings.palette = 0. }
+            if ui.button("Reddish").clicked() { mat.settings.palette = 1. }
+            if ui.button("Red/Green").clicked() { mat.settings.palette = 2. }
+            if ui.button("Hot/Cold").clicked() { mat.settings.palette = 3. }
+            if ui.button("Straw/Blue").clicked() { mat.settings.palette = 4. }
+            if ui.button("Freestyle").clicked() { mat.settings.palette = 5. }
+            ui.checkbox(&mut fb_controls_automation.rand_pal, "Rand");
         });
     });
 }

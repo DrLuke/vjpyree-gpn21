@@ -19,6 +19,17 @@ struct UniformParams {
     p7: f32,
 }
 
+struct Beat {
+    beat: f32,
+    pt1: f32,
+    accum: f32,
+    accumpt1: f32,
+}
+
+struct Settings {
+    palette: f32,
+}
+
 @group(1) @binding(0)
 var prev_t: texture_2d<f32>;
 @group(1) @binding(1)
@@ -37,6 +48,10 @@ var<uniform> col_rot: vec4<f32>;
 var<uniform> rand: UniformParams;
 @group(1) @binding(8)
 var<uniform> randpt1: UniformParams;
+@group(1) @binding(9)
+var<uniform> beat: Beat;
+@group(1) @binding(10)
+var<uniform> settings: Settings;
 
 fn rot3(axis: vec3<f32>, angle: f32) -> mat3x3<f32> {
     let an = normalize(axis);
@@ -81,6 +96,49 @@ fn palette1(t: f32) -> vec3<f32> {
     return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(1.), vec3<f32>(0.00, 0.33, 0.67));
 }
 
+fn palette2(t: f32) -> vec3<f32> {
+    return palette(t, vec3<f32>(0.8, 0.5, 0.4), vec3<f32>(0.2, 0.4, 0.2), vec3<f32>(2.0, 1.0, 1.0), vec3<f32>(0.00, 0.25, 0.25));
+}
+
+fn palette3(t: f32) -> vec3<f32> {
+    return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(2.0, 1.0, 0.0), vec3<f32>(0.50, 0.20, 0.25));
+}
+
+fn palette4(t: f32) -> vec3<f32> {
+    return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(1.), vec3<f32>(0.00, 0.10, 0.20));
+}
+
+fn palette5(t: f32) -> vec3<f32> {
+    return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(1.0, 1.0, 0.5), vec3<f32>(0.80, 0.90, 0.30	));
+}
+
+fn palette6(t: f32) -> vec3<f32> {
+    // FREESTYLE
+    return palette(t, vec3<f32>(0.5), vec3<f32>(0.5), vec3<f32>(2.0, 1.0, 0.0), vec3<f32>(0.50, 0.20, 0.25));
+}
+
+fn pal(palette: f32, t: f32) -> vec3<f32> {
+    if (palette <= 0.) {
+        return palette1(t);
+    }
+    if (palette <= 1.) {
+        return palette2(t);
+    }
+    if (palette <= 2.) {
+        return palette3(t);
+    }
+    if (palette <= 3.) {
+        return palette4(t);
+    }
+    if (palette <= 4.) {
+        return palette5(t);
+    }
+    if (palette <= 5.) {
+        return palette6(t);
+    }
+    return palette1(t);
+}
+
 
 @fragment
 fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
@@ -104,10 +162,10 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     var output_color = vec4<f32>(0.);
 
     // RD sample
-    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1 + randpt1.p4));
+    var rd_sample = textureSample(rd_t, rd_s, uvcrot(uva, globals.time*0.1 + randpt1.p4 + beat.accumpt1 * 0.1));
     var rd_strength = rd_sample.x ;
     var mask = 1.-smoothstep(rd_sample.y, 0.3, 0.5);
-    output_color = vec4<f32>(palette1(rd_strength + globals.time * 0.1 + length(uv11a)), 1.);
+    output_color = vec4<f32>(pal(settings.palette, rd_strength + globals.time * 0.1 + length(uv11a)), 1.);
 
     fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
     output_color = output_color * mask * 0.9 + fb_sample * (1.-mask) * 0.99;

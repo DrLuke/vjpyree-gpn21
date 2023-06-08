@@ -90,6 +90,11 @@ pub struct BeatStuff {
     pub beataccumpt1: f32,
 }
 
+#[derive(Clone, Copy, Default, Reflect, FromReflect, ShaderType)]
+pub struct FBSettings {
+    pub palette: f32,
+}
+
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
 #[uuid = "4f8c9212-8d94-44ca-91f0-be4e177fe418"]
 pub struct FeedbackShaderMaterial {
@@ -110,6 +115,8 @@ pub struct FeedbackShaderMaterial {
     pub randpt1: UniformParams,
     #[uniform(9)]
     pub beat_stuff: BeatStuff,
+    #[uniform(10)]
+    pub settings: FBSettings
 }
 
 impl Material for FeedbackShaderMaterial {
@@ -132,10 +139,11 @@ pub fn spawn_feedback_shader(
         previous_rt: feedback_rt.render_target.clone(),
         fractal_rt: fractal_rt.render_target.clone(),
         rd_rt: rd_rt.render_target.clone(),
-        col_rot: Vec4::new(0.5, 0.5, 0.5, 1.),
+        col_rot: Vec4::new(0.5, 0.5, 0.5, 0.02),
         rand: UniformParams::default(),
         randpt1: UniformParams::default(),
         beat_stuff: BeatStuff::default(),
+        settings: FBSettings::default(),
     });
 
     spawn_fs_quad::<FeedbackShaderMaterial>(

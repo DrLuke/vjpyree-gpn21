@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 
-use crate::rd::wipes::WipeShape::Circle;
+use crate::rd::wipes::WipeShape::{Circle, Cross, Hexagram, Octagon, Square};
 use crate::RenderLayers;
 use bevy_smud::prelude::*;
+use rand::distributions::Standard;
+use rand::prelude::Distribution;
+use rand::Rng;
 
 #[derive(Clone)]
 pub enum WipeShape {
@@ -10,6 +13,19 @@ pub enum WipeShape {
     Octagon,
     Cross,
     Square,
+    Hexagram,
+}
+
+impl Distribution<WipeShape> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> WipeShape {
+        match rng.gen_range(0..=5) {
+            0 => Circle,
+            1 => Octagon,
+            2 => Cross,
+            3 => Square,
+            _ => Hexagram,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -57,6 +73,7 @@ pub struct WipeShaders {
     pub octagon: Handle<Shader>,
     pub cross: Handle<Shader>,
     pub square: Handle<Shader>,
+    pub hexagram: Handle<Shader>,
 }
 
 impl FromWorld for WipeShaders {
@@ -66,7 +83,8 @@ impl FromWorld for WipeShaders {
             circle: shaders.add_sdf_expr("sd_circle(p, params.x)"),
             octagon:  shaders.add_sdf_expr("sd_octagon(p, params.x)"),
             cross:  shaders.add_sdf_expr("sd_cross(p, vec2<f32>(params.x, params.x * 0.3), 0.1)"),
-            square: shaders.add_sdf_expr("sd_circle(p, params.x)"),
+            square: shaders.add_sdf_expr("sd_box(p, vec2<f32>(params.x))"),
+            hexagram: shaders.add_sdf_expr("sd_hexagram(p, params.x)"),
         }
     }
 }
@@ -131,6 +149,7 @@ pub fn wipe_event_listener_system(
             WipeShape::Octagon => wipe_shaders.octagon.clone(),
             WipeShape::Cross => wipe_shaders.cross.clone(),
             WipeShape::Square => wipe_shaders.square.clone(),
+            WipeShape::Hexagram => wipe_shaders.hexagram.clone(),
         };
         spawn_wipe(event.clone(), &mut commands, &mut shaders, sdf)
     }

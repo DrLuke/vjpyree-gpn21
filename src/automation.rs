@@ -16,9 +16,9 @@ impl Plugin for AutomationPlugin {
     }
 }
 
-fn scale_rand(r: f32, range: &Range<f32>) -> f32
+fn scale_rand(range: &Range<f32>) -> f32
 {
-    return r * (range.end - range.start) + range.start;
+    return random::<f32>() * (range.end - range.start) + range.start;
 }
 
 fn rand_param(b: &bool, p: &mut f32, range: &Range<f32>)
@@ -45,20 +45,20 @@ fn fb_automation(
     let mut mat = materials.get_mut(mat_handle).unwrap();
 
     pt1_param(&mut mat.beat_stuff.beatpt1, 0., controls.beatpt1, time.delta_seconds());
-    pt1_param(&mut mat.beat_stuff.beataccumpt1, 0., mat.beat_stuff.beataccum, time.delta_seconds());
+    pt1_param(&mut mat.beat_stuff.beataccumpt1, mat.beat_stuff.beataccum, controls.beatpt1, time.delta_seconds());
 
     for beat_event in &mut beat_event_listener {
         if controls.col_r {
-            mat.col_rot.x = scale_rand(random(), &controls.col_r_range);
+            mat.col_rot.x = scale_rand(&controls.col_r_range);
         }
         if controls.col_g {
-            mat.col_rot.y = scale_rand(random(), &controls.col_g_range);
+            mat.col_rot.y = scale_rand(&controls.col_g_range);
         }
         if controls.col_b {
-            mat.col_rot.z = scale_rand(random(), &controls.col_b_range);
+            mat.col_rot.z = scale_rand(&controls.col_b_range);
         }
         if controls.col_w {
-            mat.col_rot.w = scale_rand(random(), &controls.col_w_range);
+            mat.col_rot.w = scale_rand(&controls.col_w_range);
         }
 
         rand_param(&controls.rand[0], &mut mat.rand.p0, &controls.rand_range[0]);
@@ -73,6 +73,15 @@ fn fb_automation(
         mat.beat_stuff.beat = 1.;
         mat.beat_stuff.beatpt1 = 1.;
         mat.beat_stuff.beataccum = beat_counter.get_count() as f32;
+
+        if controls.rand_pal {
+            let pal_num = 6.;
+            let mut new = scale_rand(&(0. .. pal_num)).floor();
+            if new == mat.settings.palette {
+                new = (new + 1.) % pal_num;
+            }
+            mat.settings.palette = new;
+        }
     }
 
     pt1_param(&mut mat.randpt1.p0, mat.rand.p0, controls.pt1[0], time.delta_seconds());
