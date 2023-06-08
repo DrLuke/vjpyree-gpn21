@@ -122,6 +122,9 @@ fn rd_automation(
             local_event.end_size = scale_rand(&controls.max_range);
         }
         if controls.randomize_steps {
+            if controls.steps_range.end <= controls.steps_range.start {
+                controls.steps_range.end = controls.steps_range.start + 1;
+            }
             local_event.steps = rand::thread_rng().gen_range(controls.steps_range.clone());
         }
         if controls.randomize_shape {
