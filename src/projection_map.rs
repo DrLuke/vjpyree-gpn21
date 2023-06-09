@@ -69,8 +69,9 @@ fn setup(
     parallelogram.set_indices(Some(Indices::U32(indices)));
 
     let mesh_handle = Mesh2dHandle(meshes.add(parallelogram));
+
     let mat_handle = color_materials.add(ColorMaterial {
-        texture: Some(fractal_rt.render_target.clone()),
+        texture: Some(feedback_rt.render_target.clone()),
         ..default()
     });
     commands.spawn(ColorMesh2dBundle {
@@ -85,6 +86,23 @@ fn setup(
         material: mat_handle.clone(),
         ..default()
     });
+
+    /*let mat_handle = color_materials.add(ColorMaterial {
+        texture: Some(fractal_rt.render_target.clone()),
+        ..default()
+    });
+    commands.spawn(ColorMesh2dBundle {
+        mesh: mesh_handle.clone(),
+        transform: Transform::from_xyz(0., -480., 1.),
+        material: mat_handle.clone(),
+        ..default()
+    });
+    commands.spawn(ColorMesh2dBundle {
+        mesh: mesh_handle.clone(),
+        transform: Transform::from_xyz(0., -480., 1.).with_scale(Vec3::new(-1., 1., 1.)),
+        material: mat_handle.clone(),
+        ..default()
+    });*/s
 }
 
 use bevy::prelude::*;

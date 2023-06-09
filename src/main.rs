@@ -7,6 +7,8 @@ mod chipspin;
 mod rd;
 mod projection_map;
 mod automation;
+mod beat;
+mod traktor_beat;
 
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
@@ -31,6 +33,7 @@ use crate::fractal::FractalPlugin;
 use crate::motto::Motto;
 use crate::projection_map::ProjectionMapPlugin;
 use crate::rd::RDPlugin;
+use crate::traktor_beat::TraktorPlugin;
 
 
 fn main() {
@@ -68,6 +71,7 @@ fn main() {
         .add_plugin(ProjectionMapPlugin)
 
         .add_plugin(AutomationPlugin)
+        .add_plugin(TraktorPlugin)
     ;
 
     app.run();

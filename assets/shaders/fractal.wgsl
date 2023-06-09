@@ -64,7 +64,7 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let scale = 0.5/1.;
 
     var Z = Complex(uvca.x*scale + origin.re, uvca.y*scale + origin.im);
-    var C = Complex(julia_c.re + sin(globals.time)*0.2, julia_c.im + cos(globals.time*0.8902)*0.4);
+    var C = Complex(julia_c.re + sin(globals.time*0.2)*0.2, julia_c.im + cos(globals.time*0.8902*0.2)*0.4);
 
     var output_color = vec4<f32>(0., 0., 0., 0.0);
 
@@ -79,6 +79,6 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
             break;
         }
     }
-
+    output_color.a = step(0.2, output_color.a);
     return output_color;
 }

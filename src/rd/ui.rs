@@ -102,6 +102,12 @@ pub fn ui_system(
             mat.feed = 0.0287;
             mat.kill = 0.078;
         }
+        if ui.button("Fuzzy").clicked() {
+            mat.da = 1.;
+            mat.db = 0.07;
+            mat.feed = 0.037;
+            mat.kill = 0.130;
+        }
 
         ui.separator();
 

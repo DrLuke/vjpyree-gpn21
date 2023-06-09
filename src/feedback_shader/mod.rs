@@ -94,6 +94,7 @@ pub struct BeatStuff {
 pub struct FBSettings {
     pub palette: f32,
     pub mirror_x: f32,
+    pub uv_scale: f32,
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect, FromReflect)]
@@ -144,7 +145,10 @@ pub fn spawn_feedback_shader(
         rand: UniformParams::default(),
         randpt1: UniformParams::default(),
         beat_stuff: BeatStuff::default(),
-        settings: FBSettings::default(),
+        settings: FBSettings {
+            uv_scale: 1.0,
+            ..default()
+        },
     });
 
     spawn_fs_quad::<FeedbackShaderMaterial>(

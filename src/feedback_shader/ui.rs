@@ -212,6 +212,16 @@ pub fn ui_system(
         ui.horizontal(|ui| {
             if ui.button("None").clicked() { mat.settings.mirror_x = 0. }
             if ui.button("Mirror X").clicked() { mat.settings.mirror_x = 1. }
-        })
+        });
+
+        ui.separator();
+
+        ui.label("UV scale");
+        ui.horizontal(|ui| {
+            if ui.button("Slow In").clicked() { mat.settings.uv_scale = 0.99 }
+            if ui.button("No").clicked() { mat.settings.uv_scale = 1. }
+            if ui.button("Slow Out").clicked() { mat.settings.uv_scale = 1.01 }
+            if ui.button("YEET").clicked() { mat.settings.uv_scale = 1.05 }
+        });
     });
 }
