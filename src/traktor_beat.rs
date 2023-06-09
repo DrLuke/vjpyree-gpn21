@@ -56,11 +56,9 @@ pub fn traktor_beat_system(
         if new_msg.addr == "/traktor/volume".to_owned() {
             if let Some(OscType::Int(volume)) = new_msg.args.first() {
                 traktor_beat.last_volume = *volume as isize;
-                println!("Last volume: {}", volume);
             }
         }
         if traktor_beat.count >= 24 {
-            println!("Beat");
             traktor_beat.count = 0;
             event_writer.send(BeatEvent { count: beat_counter.count, bpm: None });
         }

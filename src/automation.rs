@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy_pyree::beat::{BeatCounter, BeatEvent};
 use rand::distributions::Uniform;
 use rand::{random, Rng};
+use crate::beat_controls::BeatMute;
 use crate::feedback_shader::FeedbackShaderMaterial;
 use crate::feedback_shader::ui::FeedbackControlsAutomation;
 use crate::rd::ui::WipeAutomationControls;
@@ -44,6 +45,7 @@ fn fb_automation(
     mut mat_query: Query<&Handle<FeedbackShaderMaterial>>,
     time: Res<Time>,
     beat_counter: Res<BeatCounter>,
+    beat_mute: Res<BeatMute>,
 ) {
     let mat_handle = mat_query.get_single_mut().unwrap();
     let mut mat = materials.get_mut(mat_handle).unwrap();
@@ -52,6 +54,9 @@ fn fb_automation(
     pt1_param(&mut mat.beat_stuff.beataccumpt1, mat.beat_stuff.beataccum, controls.beatpt1, time.delta_seconds());
 
     for beat_event in &mut beat_event_listener {
+        if beat_mute.mute {
+            continue;
+        }
         if controls.col_r {
             mat.col_rot.x = scale_rand(&controls.col_r_range);
         }
@@ -107,8 +112,12 @@ fn rd_automation(
     beat_counter: Res<BeatCounter>,
     mut local_event: Local<WipeEvent>,
     mut event_writer: EventWriter<WipeEvent>,
+    beat_mute: Res<BeatMute>,
 ) {
      for beat_event in &mut beat_event_listener {
+        if beat_mute.mute {
+            continue;
+        }
         controls.beat_count += 1;
          if controls.beat_count >= controls.beat_div {
              controls.beat_count = 0;

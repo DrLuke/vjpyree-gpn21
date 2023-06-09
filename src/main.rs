@@ -7,7 +7,7 @@ mod chipspin;
 mod rd;
 mod projection_map;
 mod automation;
-mod beat;
+mod beat_controls;
 mod traktor_beat;
 
 use bevy::prelude::*;
@@ -27,6 +27,7 @@ use bevy::window::WindowResolution;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_pyree::beat::{BeatEvent, OscBeatReceiverPlugin};
 use crate::automation::AutomationPlugin;
+use crate::beat_controls::BeatControls;
 use crate::chipspin::ChipSpin;
 use crate::feedback_shader::FeedbackShaderPlugin;
 use crate::fractal::FractalPlugin;
@@ -72,6 +73,7 @@ fn main() {
 
         .add_plugin(AutomationPlugin)
         .add_plugin(TraktorPlugin)
+        .add_plugin(BeatControls)
     ;
 
     app.run();

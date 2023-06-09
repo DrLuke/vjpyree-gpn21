@@ -102,7 +102,7 @@ fn setup(
         transform: Transform::from_xyz(0., -480., 1.).with_scale(Vec3::new(-1., 1., 1.)),
         material: mat_handle.clone(),
         ..default()
-    });*/s
+    });*/
 }
 
 use bevy::prelude::*;
