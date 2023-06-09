@@ -50,6 +50,7 @@ pub fn ui_system(
     mut event_writer: EventWriter<WipeEvent>,
     mut local_event: Local<WipeEvent>,
     mut automation_controls: ResMut<WipeAutomationControls>,
+    keys: Res<Input<KeyCode>>,
 ) {
     let mat_handle = mat_query.get_single_mut().unwrap();
     let mut mat = materials.get_mut(mat_handle).unwrap();
@@ -127,11 +128,11 @@ pub fn ui_system(
             .striped(true)
             .show(ui, |ui| {
                 ui.label("Duration");
-                ui.add(egui::Slider::new(&mut local_event.duration, 0.0..=1.0));
+                ui.add(egui::Slider::new(&mut local_event.duration, 0.0..=2.0));
                 ui.end_row();
 
                 ui.label("Steps");
-                ui.add(egui::Slider::new(&mut local_event.steps, 1..=10));
+                ui.add(egui::Slider::new(&mut local_event.steps, 1..=20));
                 ui.end_row();
 
                 ui.label("Start size");
@@ -144,38 +145,38 @@ pub fn ui_system(
             });
 
         ui.horizontal(|ui| {
-            if ui.button("Circle").clicked() {
+            if ui.button("Circle").clicked() || keys.just_pressed(KeyCode::Key1) {
                 event_writer.send(WipeEvent {
                     shape: WipeShape::Circle,
                     ..*local_event
                 })
             }
-            if ui.button("Octagon").clicked() {
+            if ui.button("Octagon").clicked() || keys.just_pressed(KeyCode::Key2) {
                 event_writer.send(WipeEvent {
                     shape: WipeShape::Octagon,
                     ..*local_event
                 })
             }
-            if ui.button("Cross").clicked() {
+            if ui.button("Cross").clicked() || keys.just_pressed(KeyCode::Key3) {
                 event_writer.send(WipeEvent {
                     shape: WipeShape::Cross,
                     ..*local_event
                 })
             }
-            if ui.button("Square").clicked() {
+            if ui.button("Square").clicked() || keys.just_pressed(KeyCode::Key4) {
                 event_writer.send(WipeEvent {
                     shape: WipeShape::Square,
                     ..*local_event
                 })
             }
-            if ui.button("Hexagram").clicked() {
+            if ui.button("Hexagram").clicked() || keys.just_pressed(KeyCode::Key5) {
                 event_writer.send(WipeEvent {
                     shape: WipeShape::Hexagram,
                     ..*local_event
                 })
             }
         });
-        if ui.button("Random Shape").clicked() {
+        if ui.button("Random Shape").clicked() || keys.just_pressed(KeyCode::Key6) {
             event_writer.send(WipeEvent {
                 shape: random(),
                 ..*local_event

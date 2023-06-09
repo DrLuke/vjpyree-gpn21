@@ -52,10 +52,10 @@ impl Default for WipeEvent {
     fn default() -> Self {
         WipeEvent {
             shape: Circle,
-            duration: 1.,
-            steps: 5,
-            start_size: 1.,
-            end_size: 10.,
+            duration: 0.25,
+            steps: 10,
+            start_size: 10.,
+            end_size: 50.,
         }
     }
 }

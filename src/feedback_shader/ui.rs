@@ -140,24 +140,27 @@ pub fn ui_system(
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[3].end).speed(0.01).max_decimals(2));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.pt1[3]).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
                 ui.end_row();
-                
-                ui.label("4");
+
+                // 4
+                ui.label("Rot");
                 ui.add(egui::DragValue::new(&mut mat.rand.p4).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[4], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[4].start).speed(0.01).max_decimals(2));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[4].end).speed(0.01).max_decimals(2));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.pt1[4]).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
                 ui.end_row();
-                
-                ui.label("5");
+
+                // 5
+                ui.label("HSV Rot Mult");
                 ui.add(egui::DragValue::new(&mut mat.rand.p5).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[5], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[5].start).speed(0.01).max_decimals(2));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[5].end).speed(0.01).max_decimals(2));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.pt1[5]).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
                 ui.end_row();
-                
-                ui.label("6");
+
+                // 6
+                ui.label("FB Rot");
                 ui.add(egui::DragValue::new(&mut mat.rand.p6).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[6], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[6].start).speed(0.01).max_decimals(2));
@@ -218,6 +221,7 @@ pub fn ui_system(
 
         ui.label("UV scale");
         ui.horizontal(|ui| {
+            if ui.button("YEET^(-1)").clicked() { mat.settings.uv_scale = 0.95 }
             if ui.button("Slow In").clicked() { mat.settings.uv_scale = 0.99 }
             if ui.button("No").clicked() { mat.settings.uv_scale = 1. }
             if ui.button("Slow Out").clicked() { mat.settings.uv_scale = 1.01 }

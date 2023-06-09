@@ -156,8 +156,8 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
     // Feedback sampler effects
     var hsv_angle = prev_hsv.x * 3.14159 * 4. + atan2(uv11a.y, uv11a.x)*1.;
-    var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.001;
-    var fb_sample = textureSample(prev_t, prev_s, uvcscale(input.uv, settings.uv_scale) - sample_offset);
+    var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.001 * randpt1.p5;
+    var fb_sample = textureSample(prev_t, prev_s, uvcrot(uvcscale(input.uv, settings.uv_scale), rand.p6) - sample_offset);
 
 
     // Output

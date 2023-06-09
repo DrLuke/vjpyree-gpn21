@@ -40,11 +40,14 @@ pub fn beat_ui(
 
         ui.separator();
 
+        ui.checkbox(&mut beat_mute.mute, "Beat Mute");
         if keys.just_pressed(KeyCode::Space) {
             beat_mute.mute = true;
         }
         if keys.just_released(KeyCode::Space) {
             beat_mute.mute = false;
         }
+
+
     });
 }
