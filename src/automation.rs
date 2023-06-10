@@ -81,7 +81,7 @@ fn fb_automation(
 
         mat.beat_stuff.beat = 1.;
         mat.beat_stuff.beatpt1 = 1.;
-        mat.beat_stuff.beataccum = beat_counter.get_count() as f32;
+        mat.beat_stuff.beataccum += mat.rand.p1;
 
         if controls.rand_pal {
             let pal_num = 6.;

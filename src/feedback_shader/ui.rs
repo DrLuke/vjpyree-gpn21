@@ -109,7 +109,7 @@ pub fn ui_system(
                 ui.label("T1");
                 ui.end_row();
 
-                // ß
+                // 0
                 ui.label("PT1 bounce");
                 ui.add(egui::DragValue::new(&mut mat.rand.p0).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[0], "Rand"));
@@ -118,7 +118,8 @@ pub fn ui_system(
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.pt1[0]).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
                 ui.end_row();
 
-                ui.label("1");
+                // 1
+                ui.label("Accum rot");
                 ui.add(egui::DragValue::new(&mut mat.rand.p1).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[1], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[1].start).speed(0.01).max_decimals(2));
@@ -126,7 +127,8 @@ pub fn ui_system(
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.pt1[1]).speed(0.01).max_decimals(2).clamp_range(0. ..=f32::INFINITY));
                 ui.end_row();
 
-                ui.label("2");
+                // 2
+                ui.label("Chip PT1 scale");
                 ui.add(egui::DragValue::new(&mut mat.rand.p2).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[2], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[2].start).speed(0.01).max_decimals(2));

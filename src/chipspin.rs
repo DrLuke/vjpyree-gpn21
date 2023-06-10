@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::f32::consts::{PI, TAU};
 use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::prelude::*;
@@ -7,9 +7,13 @@ use bevy::reflect::TypeUuid;
 use bevy::render::render_resource::{AddressMode, Extent3d, AsBindGroup, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::render::texture::{DEFAULT_IMAGE_HANDLE, ImageSampler};
 use bevy::sprite::Anchor;
+use bevy::utils::tracing::event;
 use bevy_egui::{egui, EguiContexts};
+use bevy_pyree::beat::BeatEvent;
+use rand::random;
 use crate::{RenderLayers, ShaderRef};
 use crate::AlphaMode::Blend;
+use crate::beat_controls::BeatMute;
 use crate::chipspin::ChipSpinState::Fixed;
 use crate::shape::Quad;
 
@@ -116,7 +120,7 @@ fn setup(
     };
     commands.spawn(Text2dBundle {
         text_anchor: Anchor::BottomRight,
-        text: Text::from_section("23-23", text_style2).with_alignment(TextAlignment::Right),
+        text: Text::from_section("Projekt Poltergeist", text_style2).with_alignment(TextAlignment::Right),
         transform: Transform::from_scale(Vec3::splat(1.))
             .with_translation(Vec3::new(315.,-50., 0.)),
         ..default()
@@ -263,17 +267,23 @@ fn recursive_render_layer_insert(
 
 // Chip spin system
 #[derive(Debug, PartialEq, Clone, Copy)]
-enum ChipSpinState {
+pub enum ChipSpinState {
     Default, // Default position
     Fixed, // Set fixed rotation
     Rate, // Rotate with rate
 }
 
 #[derive(Resource)]
-struct ChipSpinStateResource {
+pub struct ChipSpinStateResource {
     pub state: ChipSpinState,
     pub fixed: (f32, f32, f32),
     pub rate: (f32, f32, f32),
+    pub visible: bool,
+    pub jump: bool,
+    pub pt1_strength: f32,
+    pub pt1_t: f32,
+    pub rand: bool,
+    pub rand_range: f32,
 }
 
 impl FromWorld for ChipSpinState {
@@ -286,6 +296,12 @@ impl FromWorld for ChipSpinStateResource {
             state: ChipSpinState::Rate,
             fixed: (0., 0., 0.),
             rate: (0.25, 0., 0.),
+            visible: true,
+            jump: false,
+            pt1_strength: 1.,
+            pt1_t: 0.2,
+            rand: false,
+            rand_range: 2.,
         }
     }
 }
@@ -293,13 +309,34 @@ impl FromWorld for ChipSpinStateResource {
 fn spin_dip_system(
     mut query: Query<&mut Transform, With<DipModel>>,
     time: Res<Time>,
-    csr: Res<ChipSpinStateResource>,
+    mut csr: ResMut<ChipSpinStateResource>,
+    mut event_listener: EventReader<BeatEvent>,
+    beat_mute: Res<BeatMute>,
 ) {
     let mut transform = query.single_mut();
 
+    for event in &mut event_listener {
+        if beat_mute.mute { continue; }
+        if csr.rand {
+            match csr.state {
+                Fixed => {
+                    csr.fixed.0 = random::<f32>() * csr.rand_range * TAU;
+                    csr.fixed.1 = random::<f32>() * csr.rand_range * TAU;
+                    csr.fixed.2 = random::<f32>() * csr.rand_range * TAU;
+                },
+                ChipSpinState::Rate => {
+                    csr.rate.0 = random::<f32>() * csr.rand_range;
+                    csr.rate.1 = random::<f32>() * csr.rand_range;
+                    csr.rate.2 = random::<f32>() * csr.rand_range;
+                },
+                _ => {}
+            }
+        }
+    }
+
     match csr.state {
         ChipSpinState::Default => {
-            *transform = transform.with_rotation(Quat::from_rotation_x(-PI/2.)*Quat::from_rotation_z(-PI/2.));
+            *transform = transform.with_rotation(Quat::from_euler(EulerRot::XYZ, -2., -1.55, 0.));
         },
         ChipSpinState::Fixed => {
             *transform = transform.with_rotation(Quat::from_euler(EulerRot::XYZ, csr.fixed.0, csr.fixed.1, csr.fixed.2));
@@ -357,5 +394,12 @@ fn chip_spin_ui(
                         csr.state = Fixed;
                     }
                 });
+        ui.separator();
+        ui.checkbox(&mut csr.visible, "Show");
+        ui.checkbox(&mut csr.jump, "Audio React");
+        ui.add(egui::DragValue::new(&mut csr.pt1_strength).speed(0.01));
+        ui.add(egui::DragValue::new(&mut csr.pt1_t).speed(0.01).clamp_range(0. ..=1000.));
+        ui.checkbox(&mut csr.rand, "Rand");
+        ui.add(egui::DragValue::new(&mut csr.rand_range).speed(0.01));
     });
 }

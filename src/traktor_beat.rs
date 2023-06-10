@@ -34,7 +34,7 @@ pub struct TraktorReceiver;
 
 impl Default for TraktorBeat {
     fn default() -> Self {
-        Self { count: 0, last_volume: 0 }
+        Self { count: 0, last_volume: 128 }
     }
 }
 

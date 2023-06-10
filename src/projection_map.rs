@@ -4,15 +4,19 @@ use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::prelude::*;
 use bevy::render::camera::{RenderTarget, ScalingMode};
 use bevy::render::mesh::{Indices, PrimitiveTopology};
-use bevy::sprite::{MaterialMesh2dBundle, Mesh2dHandle};
+use bevy::sprite::{MaterialMesh2dBundle, Mesh2dBindGroup, Mesh2dHandle};
 
 pub struct ProjectionMapPlugin;
 
 impl Plugin for ProjectionMapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(setup).add_system(ui_system);
+        app.add_startup_system(setup).add_system(ui_system)
+            .add_system(chip_card_system);
     }
 }
+
+#[derive(Component)]
+pub struct ChipSpinCard;
 
 fn setup(
     mut commands: Commands,
@@ -21,6 +25,7 @@ fn setup(
     fractal_rt: Res<FractalRenderTarget>,
     rd_rt: Res<RDRenderTarget>,
     feedback_rt: Res<FeedbackShaderRenderTarget>,
+    chipsin: Res<ChipSpinTexture>,
 ) {
     commands.spawn(Camera2dBundle {
         camera_2d: Camera2d {
@@ -103,6 +108,32 @@ fn setup(
         material: mat_handle.clone(),
         ..default()
     });*/
+
+    // CHIPS
+    let mesh = meshes.add(shape::Quad::new(Vec2::splat(100.)).into());
+    commands.spawn((MaterialMesh2dBundle {
+        mesh: meshes
+            .add(shape::Quad::new(Vec2::splat(600.)).into())
+            .into(),
+        material: color_materials.add(ColorMaterial {
+            texture: Some(chipsin.texture.clone()),
+            ..default()
+        }),
+        transform: Transform::from_translation(Vec3::new(400., 250., 10.)),
+        ..default()
+    }, ChipSpinCard{}));
+
+    commands.spawn((MaterialMesh2dBundle {
+        mesh: meshes
+            .add(shape::Quad::new(Vec2::splat(600.)).into())
+            .into(),
+        material: color_materials.add(ColorMaterial {
+            texture: Some(chipsin.texture.clone()),
+            ..default()
+        }),
+        transform: Transform::from_translation(Vec3::new(-400., 250., 10.)),
+        ..default()
+    }, ChipSpinCard{}));
 }
 
 use bevy::prelude::*;
@@ -110,7 +141,13 @@ use bevy::window::{PresentMode, WindowMode, WindowRef};
 
 use crate::WindowResolution;
 use bevy_egui::{egui, EguiContexts};
+use bevy_egui::egui::Shape;
+use bevy_pyree::beat::BeatEvent;
+use rand::random;
+use crate::beat_controls::BeatMute;
+use crate::chipspin::{ChipSpinStateResource, ChipSpinTexture};
 use crate::feedback_shader::{FeedbackShaderMaterial, FeedbackShaderRenderTarget};
+use crate::traktor_beat::TraktorBeat;
 
 
 pub fn ui_system(mut contexts: EguiContexts, mut commands: Commands) {
@@ -146,4 +183,50 @@ pub fn ui_system(mut contexts: EguiContexts, mut commands: Commands) {
             });
         }
     });
+}
+
+fn pt1_param(u: &mut f32, y: f32, pt1: f32, dt: f32)
+{
+    *u = *u + (y - *u) * (dt/(pt1+dt))
+}
+
+pub fn chip_card_system(
+    chip_spin_state: Res<ChipSpinStateResource>,
+    mut query: Query<&mut Visibility, With<ChipSpinCard>>,
+    mut transform_query: Query<&mut Transform, With<ChipSpinCard>>,
+    traktor: Res<TraktorBeat>,
+    mut event_listener: EventReader<BeatEvent>,
+    mut beat_mute: Res<BeatMute>,
+    time: Res<Time>,
+) {
+    for mut vis in query.iter_mut() {
+        *vis = match chip_spin_state.visible {
+            true => Visibility::Visible,
+            false => Visibility::Hidden,
+        }
+    }
+
+    for mut transform in transform_query.iter_mut() {
+        let mirror = match (transform.translation.x > 0.) {
+            true => 1.,
+            false => -1.,
+        };
+        pt1_param(&mut transform.scale.x, mirror, chip_spin_state.pt1_t, time.delta_seconds());
+        pt1_param(&mut transform.scale.y, 1., chip_spin_state.pt1_t, time.delta_seconds());
+    }
+
+    for beat_event in &mut event_listener {
+        if beat_mute.mute { continue; }
+        if chip_spin_state.jump == false { continue; }
+
+        for mut transform in transform_query.iter_mut() {
+            let strength = (traktor.last_volume as f32 / 128.) * chip_spin_state.pt1_strength;
+            let mirror = match (transform.translation.x > 0.) {
+                true => 1.,
+                false => -1.,
+            };
+            *transform = transform.with_scale(Vec3::new((1. + strength) * mirror, 1. + strength, 1.));
+        }
+    }
+
 }
