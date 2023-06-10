@@ -129,7 +129,7 @@ fn spawn_wipe(
                             params: Vec4::new(step_size, 0., 0., 0.),
                             ..default()
                         },
-                        transform: Transform::from_xyz(0.0, 0.0, 1.),
+                        transform: Transform::from_xyz(1920.0, 0.0, 1.),
                         ..default()
                     },
                     RenderLayers::layer(4),

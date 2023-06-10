@@ -89,6 +89,12 @@ fn uvcrot(uv: vec2<f32>, angle: f32) -> vec2<f32> {
     return (uv - vec2<f32>(0.5)) * rot2(angle) + vec2<f32>(0.5);
 }
 
+fn uvcarot(uv: vec2<f32>, angle: f32) -> vec2<f32> {
+    let res = vec2<f32>(1920., 610.);
+    let aspect = res.x/res.y;
+    return (((uv - vec2<f32>(0.5)) * vec2<f32>(aspect, 1.) ) * rot2(angle) + vec2<f32>(0.5)) * vec2<f32>(1./aspect, 1.);
+}
+
 // Color palette by Inigo Quilezles https://iquilezles.org/articles/palettes/
 fn palette(t: f32, a: vec3<f32>, b: vec3<f32>, c: vec3<f32>, d: vec3<f32>) -> vec3<f32> {
     return a + b*cos( 6.28318*(c*t+d) );
@@ -157,8 +163,8 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     // Feedback sampler effects
     var hsv_angle = prev_hsv.x * 3.14159 * 4. + atan2(uv11a.y, uv11a.x)*1.;
     var sample_offset = vec2<f32>(cos(hsv_angle), sin(hsv_angle)) * 0.001 * randpt1.p5;
-    var fb_sample = textureSample(prev_t, prev_s, uvcrot(uvcscale(input.uv, settings.uv_scale), rand.p6) - sample_offset);
-
+    var fb_uv = uvcscale(uvcrot(input.uv, rand.p6 * 0.01 / length(uv11a)), settings.uv_scale) - sample_offset;
+    var fb_sample = textureSample(prev_t, prev_s, fb_uv);
 
     // Output
     var output_color = vec4<f32>(0.);
@@ -168,7 +174,8 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     if ( settings.mirror_x > 0.) {
         rd_uv.x = abs(rd_uv.x - 0.5) + 0.5;
     }
-    rd_uv = uvcrot(rd_uv, globals.time*0.1 + randpt1.p4 + beat.accumpt1 * 0.1);
+    rd_uv = uvcscale(rd_uv, beat.pt1*rand.p0 + 1.);
+    rd_uv = uvcrot(rd_uv, globals.time*0.1 + randpt1.p4 + beat.accumpt1 * rand.p1);
 
     var rd_sample = textureSample(rd_t, rd_s, rd_uv);
     var rd_strength = rd_sample.x;

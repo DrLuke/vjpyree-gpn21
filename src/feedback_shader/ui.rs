@@ -109,7 +109,8 @@ pub fn ui_system(
                 ui.label("T1");
                 ui.end_row();
 
-                ui.label("0");
+                // ß
+                ui.label("PT1 bounce");
                 ui.add(egui::DragValue::new(&mut mat.rand.p0).speed(0.01).max_decimals(2));
                 ui.add(egui::Checkbox::new(&mut fb_controls_automation.rand[0], "Rand"));
                 ui.add(egui::DragValue::new(&mut fb_controls_automation.rand_range[0].start).speed(0.01).max_decimals(2));

@@ -143,6 +143,7 @@ pub fn spawn_rd(
                 },
                 ..default()
             },
+            transform: Transform::from_xyz(1920., 0., 100.),
             ..default()
         })
         .insert(RenderLayers::layer(4));
