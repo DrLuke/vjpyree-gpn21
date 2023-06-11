@@ -120,7 +120,7 @@ fn setup(
     };
     commands.spawn(Text2dBundle {
         text_anchor: Anchor::BottomRight,
-        text: Text::from_section("Projekt Poltergeist", text_style2).with_alignment(TextAlignment::Right),
+        text: Text::from_section("Project Poltergeist", text_style2).with_alignment(TextAlignment::Right),
         transform: Transform::from_scale(Vec3::splat(1.))
             .with_translation(Vec3::new(315.,-50., 0.)),
         ..default()

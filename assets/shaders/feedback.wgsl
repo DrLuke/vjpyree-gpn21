@@ -183,7 +183,7 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     output_color = vec4<f32>(pal(settings.palette, rd_strength + globals.time * 0.1 + length(uv11a)), 1.);
 
     fb_sample = vec4<f32>(fb_sample.rgb*rot3(col_rot.xyz, col_rot.w), fb_sample.a);
-    output_color = output_color * mask * 0.9 + fb_sample * (1.-mask) * 0.99;
+    output_color = output_color * mask * 0.8 + fb_sample * (1.-mask) * 0.99;
 
     return output_color;
 }
