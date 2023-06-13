@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy_pyree = { path="../bevy_pyree" }
+bevy_pyree = { git="https://github.com/DrLuke/bevy_pyree", rev="056f88da19f0d96d55d6db56977e6e6efe37132d" }
 bevy_rosc = "0.6.0"
 bevy-inspector-egui = "0.18.3"
 rosc = "0.9.1"
